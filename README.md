@@ -1,8 +1,8 @@
 # voxintenebris
 “The quieter you become, the more you can hear”
 
-- App ID: 2918293581566291 (Used to initialize the Platform SDK.)
-- User ID: 2693169697404384 (Your application specific user ID for debugging and testing)
+- *App ID*: 2918293581566291 (Used to initialize the Platform SDK.)
+- *User ID*: 2693169697404384 (Your application specific user ID for debugging and testing)
 
 
 
