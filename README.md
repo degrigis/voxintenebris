@@ -1,6 +1,9 @@
 # voxintenebris
 “The quieter you become, the more you can hear”
 
+- App ID: 2918293581566291 (This secret token is used to make requests to Oculus APIs on behalf of your app rather than a user.)
+- User ID: 2693169697404384 (Your application specific user ID for debugging and testing)
+
 
 
 ## Current Status
