@@ -5,7 +5,8 @@ using UnityEngine;
 public class MoveIt : MonoBehaviour
 {
  float timeCounter = 0;
-
+  int done = 0;
+  int steps = 0;
 AudioSource m_MyAudioSource;
 
 //Play the music
@@ -26,7 +27,7 @@ m_MyAudioSource = GetComponent<AudioSource>();
   int move = Random.Range(0, 600);
   
   timeCounter += Time.deltaTime;
-if(move == 1){
+if(move < 5 && done == 0 ){
 
 float x = Mathf.Cos(timeCounter) + 5; // + X regulates the distance!
 float y = Mathf.Sin(timeCounter) + 5 ;
@@ -38,6 +39,7 @@ float z = 0;
     //Play the audio you attach to the AudioSource component
     m_MyAudioSource.Play();
     //Ensure audio doesn’t play more than once
-}
- }
+   done++;
+   
+}}
 }
