@@ -10,6 +10,7 @@ public class PathBuilder : MonoBehaviour
     public float spawnDelay;
     public int TileThreshold = 4;
     public bool stopSpawning;
+    public int keep_direction_for_n_turns = 3;
 
     private float spawnTimer = 0;
     private int number_tiles_spawned = 0;
@@ -32,11 +33,7 @@ public class PathBuilder : MonoBehaviour
         LEFT = 3,
 
     }
-
-    void Start() {
-        floor = GameObject.FindGameObjectWithTag("Floor");
-        Debug.Log("Getting floor");
-    }
+    private Directions previousDirection = Directions.FORWARD;
 
     void Update() {
         if (number_tiles_spawned < TileThreshold && spawnTimer > spawnDelay && !stopSpawning)
@@ -56,21 +53,26 @@ public class PathBuilder : MonoBehaviour
             Debug.Log("Dead-end reached!");
             stopSpawning = true;
             return;
-        }       
-        Directions random_move_direction = (Directions)rand.Next(this_turn_possible_direction.Count);
-        Vector3 random_move = possibleDirections[(int)random_move_direction];
+        } 
 
-        if (is_colliding_with_obstacle(transform.position, random_move_direction) || !is_space_available(transform.position, random_move)) {
-            this_turn_possible_direction.Remove(random_move_direction);
-            SpawnTile(new List<Directions>(this_turn_possible_direction));
+        if (keep_direction_for_n_turns > 0 && !is_colliding_with_obstacle(transform.position, previousDirection) && is_space_available(transform.position, possibleDirections[(int)previousDirection])) {
+            instantiateTile();
         }
-        else {
-            transform.position = transform.position + (random_move * transform.localScale.x);
-            GameObject spawned_tile = Instantiate(Tile, transform.position, transform.rotation);
-            number_tiles_spawned += 1;
-            Debug.Log(String.Format("# Tile spawned {0}/{1}", number_tiles_spawned, TileThreshold));
-        }
+        else{
 
+            Directions random_move_direction = this_turn_possible_direction[rand.Next(this_turn_possible_direction.Count)];
+            Vector3 random_move = possibleDirections[(int)random_move_direction];
+
+            if (is_colliding_with_obstacle(transform.position, random_move_direction) || !is_space_available(transform.position, random_move)) {
+                this_turn_possible_direction.Remove(random_move_direction);
+                SpawnTile(new List<Directions>(this_turn_possible_direction));
+            }
+            else {
+                keep_direction_for_n_turns = 3;
+                previousDirection = random_move_direction;
+                instantiateTile();
+            }
+        }
     }
 
     private bool is_space_available(Vector3 current_position, Vector3 move) {
@@ -80,11 +82,6 @@ public class PathBuilder : MonoBehaviour
         RaycastHit hit_out_of_bound;
 
         bool is_collision_detected = Physics.Raycast(out_of_bound_ray, out hit_out_of_bound, 1);
-
-        // if (is_collision_detected && hit_out_of_bound.collider.tag == "Tile") {
-        //     Debug.Log("A previous tile was already present in this space!");
-        //     return false;
-        // }
 
         if (!is_collision_detected) {
             Debug.Log("Out of bound!");
@@ -118,27 +115,36 @@ public class PathBuilder : MonoBehaviour
                 return true;
         }
 
-
-        // Debug.DrawLine(transform.position, Vector3.forward * 10, Color.green, 2f);
-        // Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 3f, Color.blue, 0.5f);
         Debug.DrawRay(collision_ray.origin, collision_ray.direction * 3f, Color.blue);
-        // Debug.DrawRay(collision_ray.origin, collision_ray.direction * 3f, Color.blue);
-        // Debug.DrawRay(collision_ray.origin, collision_ray.direction * 3f, Color.blue);
+        Debug.DrawRay(collision_ray.origin, collision_ray.direction * 9f, Color.red);
 
         bool is_collision_detected = Physics.Raycast(collision_ray, out collision_hit, 3f);
+        bool is_deadend_detected = Physics.Raycast(collision_ray, out collision_hit, 9f);
 
         if (is_collision_detected){
             if (collision_hit.collider.tag == "Tile"){
                 Debug.Log("A previous tile was already present in this space!");
             } else {
-
                 Debug.Log("Collision detected with an obstacle");
-
             }
+            return true;
+        }
+        
+        if (is_deadend_detected && collision_hit.collider.tag == "Tile"){
+             Debug.Log("Possible deadend, stir away!");
+             return true;
         }
 
-        return is_collision_detected;
+        return false; 
 
+    }
+
+    private void instantiateTile() {
+        transform.position = transform.position + (possibleDirections[(int)previousDirection] * transform.localScale.x);
+        GameObject spawned_tile = Instantiate(Tile, transform.position, transform.rotation);
+        number_tiles_spawned += 1;
+        keep_direction_for_n_turns -= 1; 
+        Debug.Log(String.Format("# Tile spawned {0}/{1}", number_tiles_spawned, TileThreshold));
     }
 
 }
