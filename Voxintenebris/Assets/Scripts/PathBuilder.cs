@@ -54,17 +54,10 @@ public class PathBuilder : MonoBehaviour
             Debug.Log("Something went wrong: this_turn_possible_direction is empty!");
             return;
         }       
+        Directions random_move_direction = (Directions)rand.Next(this_turn_possible_direction.Count);
+        Vector3 random_move = this_turn_possible_direction[(int)random_move_direction];
 
-        Vector3 random_move = this_turn_possible_direction[rand.Next(this_turn_possible_direction.Count)];
-        // Vector3 newPosition = transform.position + (random_move * transform.localScale.x);
-
-        // Ray out_of_bound_ray = new Ray(newPosition, Vector3.down);
-        // RaycastHit hit_out_of_bound;
-
-        // Debug.DrawLine(transform.position, transform.position + Vector3.left * 20, Color.red);
-
-        if (!is_out_of_bound(transform.position, random_move)) {
-            Debug.Log("Out of bound!");
+        if (!is_within_bound(transform.position, random_move) || is_colliding(transform.position, random_move_direction) ) {
             this_turn_possible_direction.Remove(random_move);
             SpawnTile(this_turn_possible_direction);
         }
@@ -76,13 +69,61 @@ public class PathBuilder : MonoBehaviour
 
     }
  
-    private bool is_out_of_bound(Vector3 current_position, Vector3 move) {
+    private bool is_within_bound(Vector3 current_position, Vector3 move) {
         Vector3 newPosition = current_position + (move * transform.localScale.x);
 
         Ray out_of_bound_ray = new Ray(newPosition, Vector3.down);
         RaycastHit hit_out_of_bound;
 
-        return Physics.Raycast(out_of_bound_ray, out hit_out_of_bound, 1);
+        bool is_within_bound = Physics.Raycast(out_of_bound_ray, out hit_out_of_bound, 1);
+
+        if (!is_within_bound) {
+            Debug.Log("Out of bound!");
+        }
+
+        return is_within_bound;
+    }
+
+    // private bool is_within_bound(Vector3 current_position, Vector3 move) {
+    //     Vector3 newPosition = current_position + (move * transform.localScale.x);
+
+    //     Ray out_of_bound_ray = new Ray(newPosition, Vector3.down);
+    //     RaycastHit hit_out_of_bound;
+
+    //     return Physics.Raycast(out_of_bound_ray, out hit_out_of_bound, 1);
+    // }
+
+    private bool is_colliding(Vector3 position, Directions direction) {
+        RaycastHit collision_hit;
+        Ray collision_ray;
+
+        switch (direction)
+        {
+            case Directions.RIGHT:
+                collision_ray = new Ray(position, Vector3.right);
+                break;
+            case Directions.LEFT:
+                collision_ray = new Ray(position, Vector3.left);
+                break;
+            case Directions.FORWARD:
+                collision_ray = new Ray(position, Vector3.forward);
+                break;
+            case Directions.BACKWARD:
+                collision_ray = new Ray(position, Vector3.back);
+                break;
+            default:
+                Debug.Log("Something went wrong. Weird direction detected!");
+                return true;
+        }
+
+        bool is_collision_detected = Physics.Raycast(collision_ray, out collision_hit, 2);
+
+        if (is_collision_detected){
+            Debug.Log("Collision detected!");
+        }
+
+        return is_collision_detected;
+
     }
 
 }
