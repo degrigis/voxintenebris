@@ -1,28 +1,31 @@
 ﻿<Properties StartupConfiguration="{0F21FE5F-00BB-9C14-00FF-693665944651}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/LightControl.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/handtrackinggrab.cs">
     <Files>
       <File FileName="Assets/LightControl.cs" Line="1" Column="1" />
+      <File FileName="Assets/handtrackinggrab.cs" Line="21" Column="6" />
+      <File FileName="Assets/DoorGrabbable.cs" />
+      <File FileName="Assets/Oculus/VR/Editor/OVREngineConfigurationUpdater.cs" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="voxintenebris" expanded="True">
             <Node name="Assets" expanded="True">
-              <Node name="AudioInput.cs" selected="True" />
+              <Node name="Oculus" expanded="True">
+                <Node name="VR" expanded="True">
+                  <Node name="Editor" expanded="True" />
+                </Node>
+              </Node>
+              <Node name="handtrackinggrab.cs" selected="True" />
             </Node>
           </Node>
-        </State>
-      </Pad>
-      <Pad Id="MonoDevelop.UnitTesting.TestPad">
-        <State name="__root__">
-          <Node name="voxintenebris" expanded="True" selected="True" />
         </State>
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="0c8995d0-a97d-4c1d-b9a6-5d8630171f3e" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="73262f31-bd34-4d22-8621-e999d099248b" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

@@ -2,27 +2,31 @@ ScriptsOnlyBuild:
   usedScripts:
     Assembly-CSharp.dll:
     - AudioInput
-    - CharacterCameraConstraint
     - DoorGrabbable
     - Followphysics
-    - LightControl
     - ONSPSettings
-    - OVRTouchSample.Hand
-    - OVRTouchSample.HandPose
+    - OculusSampleFramework.HandsManager
     - Outline
+    - handtrackinggrab
     Oculus.VR.Editor.dll:
     - OVRConfig
     Oculus.VR.dll:
     - OVRCameraRig
-    - OVRDebugInfo
-    - OVRGrabber
+    - OVRGrabbable
+    - OVRHand
     - OVRHeadsetEmulator
     - OVRManager
-    - OVRPlayerController
-    - OVRSceneSampleController
-    - OVRScreenFade
+    - OVRMesh
+    - OVRMeshRenderer
+    - OVRSkeleton
+    - OVRSkeletonRenderer
     Unity.Rider.Editor.dll:
     - Packages.Rider.Editor.UnitTesting.CallbackData
+    Unity.XR.Management.Editor.dll:
+    - UnityEditor.XR.Management.XRGeneralSettingsPerBuildTarget
+    Unity.XR.Management.dll:
+    - UnityEngine.XR.Management.XRGeneralSettings
+    - UnityEngine.XR.Management.XRManagerSettings
     UnityEditor.TestRunner.dll:
     - UnityEditor.TestTools.TestRunner.Api.CallbacksHolder
     - UnityEditor.TestTools.TestRunner.TestListCacheData
@@ -55,15 +59,11 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 65
       Script: {instanceID: 0}
-    - Class: 74
-      Script: {instanceID: 0}
     - Class: 81
       Script: {instanceID: 0}
     - Class: 82
       Script: {instanceID: 0}
     - Class: 90
-      Script: {instanceID: 0}
-    - Class: 91
       Script: {instanceID: 0}
     - Class: 95
       Script: {instanceID: 0}
@@ -74,50 +74,44 @@ ScriptsOnlyBuild:
     - Class: 109
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 11386}
+      Script: {instanceID: 11402}
     - Class: 114
-      Script: {instanceID: 11492}
+      Script: {instanceID: 11524}
     - Class: 114
-      Script: {instanceID: 11532}
+      Script: {instanceID: 11566}
     - Class: 114
-      Script: {instanceID: 11664}
+      Script: {instanceID: 12090}
     - Class: 114
-      Script: {instanceID: 11748}
+      Script: {instanceID: 12164}
     - Class: 114
-      Script: {instanceID: 12070}
+      Script: {instanceID: 12182}
     - Class: 114
-      Script: {instanceID: 12096}
+      Script: {instanceID: 12460}
     - Class: 114
-      Script: {instanceID: 12332}
+      Script: {instanceID: 12546}
     - Class: 114
-      Script: {instanceID: 12482}
-    - Class: 114
-      Script: {instanceID: 12594}
-    - Class: 114
-      Script: {instanceID: 12602}
-    - Class: 114
-      Script: {instanceID: 12748}
-    - Class: 114
-      Script: {instanceID: 12890}
+      Script: {instanceID: 12922}
     - Class: 114
       Script: {instanceID: 12952}
     - Class: 114
-      Script: {instanceID: 13170}
+      Script: {instanceID: 13018}
     - Class: 114
-      Script: {instanceID: 13416}
+      Script: {instanceID: 13094}
     - Class: 114
-      Script: {instanceID: 13576}
+      Script: {instanceID: 13160}
     - Class: 114
-      Script: {instanceID: 13674}
+      Script: {instanceID: 13604}
+    - Class: 114
+      Script: {instanceID: 13664}
+    - Class: 114
+      Script: {instanceID: 13828}
+    - Class: 114
+      Script: {instanceID: 14370}
     - Class: 115
-      Script: {instanceID: 0}
-    - Class: 136
       Script: {instanceID: 0}
     - Class: 137
       Script: {instanceID: 0}
     - Class: 138
-      Script: {instanceID: 0}
-    - Class: 143
       Script: {instanceID: 0}
     - Class: 157
       Script: {instanceID: 0}
@@ -312,6 +306,12 @@ ScriptsOnlyBuild:
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.EventSystems
     className: TouchInputModule
+  - hash:
+      serializedVersion: 2
+      Hash: 98aa0a0c8ff2910eb12af89c7e0eb661
+    assemblyName: Unity.XR.Management.dll
+    namespaceName: UnityEngine.XR.Management
+    className: XRGeneralSettings
   - hash:
       serializedVersion: 2
       Hash: 8e0313c6f5e2ce35991fec2d64f8eaab
@@ -786,6 +786,12 @@ ScriptsOnlyBuild:
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: ONSPReflectionZone
+  - hash:
+      serializedVersion: 2
+      Hash: 66e7b0abd0687dc41a70008b822f38c6
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: handtrackinggrab
   - hash:
       serializedVersion: 2
       Hash: f2804c5e7659d20873aa628b628aaa3b
@@ -1628,6 +1634,12 @@ ScriptsOnlyBuild:
     className: TestRunCallbackListener
   - hash:
       serializedVersion: 2
+      Hash: 8ab9295d94483c961936d82d233d3df2
+    assemblyName: Unity.XR.Management.dll
+    namespaceName: UnityEngine.XR.Management
+    className: XRManagerSettings
+  - hash:
+      serializedVersion: 2
       Hash: 4ef0f7d42cdb13479386e1f049c315aa
     assemblyName: UnityEngine.TestRunner.dll
     namespaceName: UnityEngine.TestTools.TestRunner
@@ -1731,4 +1743,4 @@ ScriptsOnlyBuild:
   platform: 13
   scenePathNames:
   - Assets/Scenes/SampleScene.unity
-  playerPath: /Users/caojingxuan/VRexperience_test/voxintenebris/test_build/test.apk
+  playerPath: /Users/caojingxuan/VRexperience_test/voxintenebris/test_build2/test.apk
