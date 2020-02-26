@@ -134,12 +134,12 @@ PrefabInstance:
     - target: {fileID: -7911005114101338432, guid: d0aece4e9e42dff26898f59b3459c3dd,
         type: 3}
       propertyPath: TileThreshold
-      value: 100
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: -7911005114101338432, guid: d0aece4e9e42dff26898f59b3459c3dd,
         type: 3}
       propertyPath: spawnDelay
-      value: 0.5
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 2625330067460725797, guid: d0aece4e9e42dff26898f59b3459c3dd,
         type: 3}
