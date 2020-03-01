@@ -4,6 +4,7 @@ ScriptsOnlyBuild:
     - AudioInput
     - DoorGrabbable
     - Followphysics
+    - LightControl
     - ONSPSettings
     - OculusSampleFramework.HandsManager
     - Outline
@@ -81,6 +82,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 11518}
     - Class: 114
       Script: {instanceID: 12004}
+    - Class: 114
+      Script: {instanceID: 12060}
     - Class: 114
       Script: {instanceID: 12070}
     - Class: 114
