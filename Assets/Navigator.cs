@@ -11,14 +11,23 @@ private AudioSource audioData;
     private OVRCameraRig Player;
     private Light RedLight;
 
+    public GameObject albi;
     private LineRenderer lineRenderer;
     // Start is called before the first frame update
+    
+    private enum Directions {
+        LEFT,
+        RIGHT,
+        STRAIGHT
+    }
+    
     void Start()
     {
         Debug.Log("Navigator started!");
         Player = GameObject.FindGameObjectWithTag("casa").GetComponent<OVRCameraRig>();
         RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
+        albi = GameObject.FindGameObjectWithTag("albi");
     }
 
     // Update is called once per frame 
@@ -61,9 +70,14 @@ private AudioSource audioData;
             RedLight.color =  Color.green;
         }
         String log = boundary_result_head.ClosestDistance.ToString();
+
+        Directions dir = getleftOrRight(Player.centerEyeAnchor.forward, albi.transform.position, Player.centerEyeAnchor.up);
+
         log += String.Format("\n x: {0}", Player.centerEyeAnchor.localPosition.x);
         log += String.Format("\n y: {0}", Player.centerEyeAnchor.localPosition.y);
         log += String.Format("\n z: {0}", Player.centerEyeAnchor.localPosition.z);
+        log += String.Format("\n albi is at your {0}", dir);
+
         QuestDebug.Instance.Log(log);
         //Debug.DrawRay(Player.centerEyeAnchor.position, Player.centerEyeAnchor.forward * 20, Color.red, 2.5f);
         //debugDrawForward();
@@ -80,4 +94,18 @@ private AudioSource audioData;
         lineRenderer.SetPosition(0, Player.centerEyeAnchor.position +  Player.centerEyeAnchor.forward * 2);
         lineRenderer.SetPosition(1, Player.centerEyeAnchor.forward * 20 + Player.centerEyeAnchor.position);
     }
+
+   	private Directions getleftOrRight(Vector3 fwd, Vector3 targetDir, Vector3 up) {
+		Vector3 perp = Vector3.Cross(fwd, targetDir);
+		float dir = Vector3.Dot(perp, up);
+		
+		if (dir > 0f) {
+			return Directions.RIGHT; 
+		} else if (dir < 0f) {
+			return Directions.LEFT;
+		} else {
+			return Directions.STRAIGHT;
+		}
+	}
+	
 }
