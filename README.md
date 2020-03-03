@@ -11,7 +11,7 @@
      - [ ] Procedurally generating the sequence of actions to escape the nightmare inside the Guardian boundaries.
      - [X] Actions scripting
           - [X] Opening doors. 
-          - [ ] Light up the room when player make sounds 
+          - [X] Light up the room when player make sounds 
 
 - Game Graphics :pencil2:
      - [X] Design a 90% dark level.
@@ -24,7 +24,7 @@
           - [ ] Steps
      - [X] Found a good soundtrack 
      - [ ] Other 3D Audio effects 
-     - [ ] Voice input system 
+     - [X] Voice input system 
      
 - Game Plot :clapper:
      - [X] What does the good spirit say to guide you?
