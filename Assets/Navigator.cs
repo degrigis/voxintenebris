@@ -17,6 +17,7 @@ private AudioSource audioData;
 
     private AudioSource Heartbeat;
     private float initialHeartbeatPitch;
+    private float initialLightIntensity;
     
     private float targetMinDistance;
     private enum Directions {
@@ -35,6 +36,7 @@ private AudioSource audioData;
         albi = GameObject.FindGameObjectWithTag("albi");
         Heartbeat = PlayerController.GetComponent<AudioSource>();
         initialHeartbeatPitch = Heartbeat.pitch;
+        initialLightIntensity = RedLight.intensity;
         targetMinDistance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
     }
 
@@ -70,13 +72,13 @@ private AudioSource audioData;
         OVRBoundary.BoundaryTestResult boundary_result_head = boundary.TestNode(OVRBoundary.Node.Head, OVRBoundary.BoundaryType.OuterBoundary);
         // OVRBoundary.BoundaryTestResult boundary_result_left_hand = boundary.TestNode(OVRBoundary.Node.HandLeft, OVRBoundary.BoundaryType.OuterBoundary);
         // OVRBoundary.BoundaryTestResult boundary_result_right_hand = boundary.TestNode(OVRBoundary.Node.HandRight, OVRBoundary.BoundaryType.OuterBoundary);
-        if(boundary_result_head.IsTriggering){
-            // QuestDebug.Instance.Log("Ah triggered!");
-            RedLight.color =  Color.blue;
-        }else{
-            // QuestDebug.Instance.Log("Ah not triggered!");
-            RedLight.color =  Color.green;
-        }
+        // if(boundary_result_head.IsTriggering){
+        //     // QuestDebug.Instance.Log("Ah triggered!");
+        //     RedLight.color =  Color.blue;
+        // }else{
+        //     // QuestDebug.Instance.Log("Ah not triggered!");
+        //     RedLight.color =  Color.green;
+        // }
         String log = boundary_result_head.ClosestDistance.ToString();
 
         debugDrawForward(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
@@ -84,6 +86,7 @@ private AudioSource audioData;
 
         float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
         scaleHeartbeat(cur_distance);
+        scaleLight(cur_distance);
 
         log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
         log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
@@ -133,7 +136,6 @@ private AudioSource audioData;
     }
 
     private void scaleHeartbeat(float distanceFromTarget) {
-        float currentPitch = Heartbeat.pitch;
         float modifierFactor = distanceFromTarget - targetMinDistance;
         //I'm going away from the target
         if (modifierFactor > 0) {
@@ -143,6 +145,18 @@ private AudioSource audioData;
         else {
             Heartbeat.pitch = initialHeartbeatPitch;
             targetMinDistance = distanceFromTarget;
+        }
+    }
+
+    private void scaleLight(float distanceFromTarget) {
+        float modifierFactor = distanceFromTarget - targetMinDistance;
+        //I'm going away from the target
+        if (modifierFactor > 0) {
+            RedLight.intensity = initialLightIntensity - modifierFactor * 10;
+        } 
+        // We are going towards the target so we have to update mindistance
+        else {
+            RedLight.intensity = initialLightIntensity;
         }
     }
 	
