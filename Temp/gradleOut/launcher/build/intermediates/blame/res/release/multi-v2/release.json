@@ -1,27 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/caojingxuan/VRexperience_test/voxintenebris/Temp/gradleOut/launcher/build/intermediates/res/merged/release/values_values.arsc.flat",
+            "outputFile": "/home/yimeng/Desktop/20winter/291I/project/voxintenebris/Temp/gradleOut/launcher/build/intermediates/res/merged/release/values_values.arsc.flat",
             "map": [
                 {
-                    "source": "/Users/caojingxuan/.gradle/caches/transforms-2/files-2.1/e984bacef2e50bcf0764f43801ccada5/res/values/values.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "2",
-                        "startOffsets": "53",
-                        "endColumns": "41",
-                        "endOffsets": "92"
-                    },
-                    "to": {
-                        "startLines": "4",
-                        "startColumns": "4",
-                        "startOffsets": "178",
-                        "endColumns": "43",
-                        "endOffsets": "217"
-                    }
-                },
-                {
-                    "source": "/Users/caojingxuan/VRexperience_test/voxintenebris/Temp/gradleOut/launcher/src/main/res/values/strings.xml",
+                    "source": "/home/yimeng/Desktop/20winter/291I/project/voxintenebris/Temp/gradleOut/launcher/src/main/res/values/strings.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "2,2",
@@ -38,7 +21,24 @@
                     }
                 },
                 {
-                    "source": "/Users/caojingxuan/VRexperience_test/voxintenebris/Temp/gradleOut/launcher/src/main/res/values/styles.xml",
+                    "source": "/home/yimeng/.gradle/caches/transforms-2/files-2.1/aff90a08339abaac7399ae3db47764b0/res/values/values.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "2",
+                        "startOffsets": "53",
+                        "endColumns": "41",
+                        "endOffsets": "92"
+                    },
+                    "to": {
+                        "startLines": "4",
+                        "startColumns": "4",
+                        "startOffsets": "178",
+                        "endColumns": "43",
+                        "endOffsets": "217"
+                    }
+                },
+                {
+                    "source": "/home/yimeng/Desktop/20winter/291I/project/voxintenebris/Temp/gradleOut/launcher/src/main/res/values/styles.xml",
                     "from": {
                         "startLines": "5,2,7",
                         "startColumns": "0,0,0",
@@ -59,10 +59,10 @@
             ]
         },
         {
-            "outputFile": "/Users/caojingxuan/VRexperience_test/voxintenebris/Temp/gradleOut/launcher/build/intermediates/res/merged/release/values-v21_values-v21.arsc.flat",
+            "outputFile": "/home/yimeng/Desktop/20winter/291I/project/voxintenebris/Temp/gradleOut/launcher/build/intermediates/res/merged/release/values-v21_values-v21.arsc.flat",
             "map": [
                 {
-                    "source": "/Users/caojingxuan/VRexperience_test/voxintenebris/Temp/gradleOut/launcher/src/main/res/values-v21/styles.xml",
+                    "source": "/home/yimeng/Desktop/20winter/291I/project/voxintenebris/Temp/gradleOut/launcher/src/main/res/values-v21/styles.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "0",

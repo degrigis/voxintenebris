@@ -1,4 +1,4 @@
-#Sat Feb 29 21:04:11 PST 2020
-base.0=/Users/caojingxuan/VRexperience_test/voxintenebris/Temp/gradleOut/launcher/build/intermediates/transforms/dexMerger/release/0
+#Mon Mar 02 23:41:48 PST 2020
+base.0=/home/yimeng/Desktop/20winter/291I/project/voxintenebris/Temp/gradleOut/launcher/build/intermediates/transforms/dexMerger/release/0
 path.0=classes.dex
 renamed.0=classes.dex
