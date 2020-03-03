@@ -8,13 +8,17 @@ public class Navigator : MonoBehaviour
 private OVRBoundary boundary;
 private AudioSource audioData;
     private OVRBoundary.BoundaryTestResult boundary_result;
-    private OVRCameraRig Player;
+    private OVRCameraRig PlayerCamera;
+    private OVRPlayerController PlayerController;
     private Light RedLight;
 
     public GameObject albi;
     private LineRenderer lineRenderer;
-    // Start is called before the first frame update
+
+    private AudioSource Heartbeat;
+    private float initialHeartbeatPitch;
     
+    private float targetMinDistance;
     private enum Directions {
         LEFT,
         RIGHT,
@@ -24,10 +28,14 @@ private AudioSource audioData;
     void Start()
     {
         Debug.Log("Navigator started!");
-        Player = GameObject.FindGameObjectWithTag("casa").GetComponent<OVRCameraRig>();
+        PlayerCamera = GameObject.FindGameObjectWithTag("casa").GetComponent<OVRCameraRig>();
+        PlayerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<OVRPlayerController>();
         RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
         albi = GameObject.FindGameObjectWithTag("albi");
+        Heartbeat = PlayerController.GetComponent<AudioSource>();
+        initialHeartbeatPitch = Heartbeat.pitch;
+        targetMinDistance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
     }
 
     // Update is called once per frame 
@@ -71,22 +79,26 @@ private AudioSource audioData;
         }
         String log = boundary_result_head.ClosestDistance.ToString();
 
-        debugDrawForward(Player.centerEyeAnchor.position, albi.transform.position);
-        Directions dir = getleftOrRight(Player.centerEyeAnchor.forward, albi.transform.position, Player.centerEyeAnchor.up);
+        debugDrawForward(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
+        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, albi.transform.position, PlayerCamera.centerEyeAnchor.up);
 
-        log += String.Format("\n x: {0}", Player.centerEyeAnchor.position.x);
-        log += String.Format("\n y: {0}", Player.centerEyeAnchor.position.y);
-        log += String.Format("\n z: {0}", Player.centerEyeAnchor.position.z);
-        log += String.Format("\n albi is at your {0}", dir);
+        float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
+        scaleHeartbeat(cur_distance);
+
+        log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
+        log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
+        log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
+        log += String.Format("\n Distance: {0}", PlayerCamera.centerEyeAnchor.position.z);
+        // log += String.Format("\n albi is at your {0}", dir);
 
         QuestDebug.Instance.Log(log);
 
-        if (dir == Directions.RIGHT) {
-            RedLight.color = Color.yellow;
-        }
-        else { 
-            RedLight.color = Color.magenta;
-        }
+        // if (dir == Directions.RIGHT) {
+        //     RedLight.color = Color.yellow;
+        // }
+        // else { 
+        //     RedLight.color = Color.magenta;
+        // }
         //Debug.DrawRay(Player.centerEyeAnchor.position, Player.centerEyeAnchor.forward * 20, Color.red, 2.5f);
         //debugDrawForward(Player.centerEyeAnchor.position +  Player.centerEyeAnchor.forward * 2,  Player.centerEyeAnchor.forward * 20 + Player.centerEyeAnchor.position);
         // Debug.Log(Player.transform.position.x);
@@ -115,5 +127,23 @@ private AudioSource audioData;
 			return Directions.STRAIGHT;
 		}
 	}
+
+    private float getDistanceFromTarget(Vector3 start, Vector3 end){
+        return Vector3.Distance(start, end);
+    }
+
+    private void scaleHeartbeat(float distanceFromTarget) {
+        float currentPitch = Heartbeat.pitch;
+        float modifierFactor = distanceFromTarget - targetMinDistance;
+        //I'm going away from the target
+        if (modifierFactor > 0) {
+            Heartbeat.pitch = initialHeartbeatPitch + modifierFactor;
+        } 
+        // We are going towards the target so we have to update mindistance
+        else {
+            Heartbeat.pitch = initialHeartbeatPitch;
+            targetMinDistance = distanceFromTarget;
+        }
+    }
 	
 }
