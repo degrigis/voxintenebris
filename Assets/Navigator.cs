@@ -12,6 +12,7 @@ public class Navigator : MonoBehaviour
 
     public GameObject Target;
     public GameObject BoundaryPoint;
+    public GameObject EvilDoor;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
@@ -180,8 +181,15 @@ public class Navigator : MonoBehaviour
             Destroy(item);
         }
         guardianBoundariesPoint.Clear();
-        // Put here the procedural stufff
+            // Put here the procedural stuff
+        spawnDoor();
         createNextTarget(PlayerCamera.centerEyeAnchor.position);
+    }
+
+    private void spawnDoor() {
+        Vector3 doorPosition =  PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward; 
+        EvilDoor = Instantiate(EvilDoor, doorPosition, PlayerCamera.centerEyeAnchor.rotation);
+        QuestDebug.Instance.Log("Door spawned!!");
     }
 	
     private void createNextTarget(Vector3 playerPosition){

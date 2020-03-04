@@ -415,6 +415,8 @@ MonoBehaviour:
   Target: {fileID: 505834687697958297, guid: bc4dec38d2fe917429901b96789dbd1f, type: 3}
   BoundaryPoint: {fileID: 505834687697958297, guid: dd9cd68500e95374694a1d84ddc5965e,
     type: 3}
+  EvilDoor: {fileID: 7225103478326467156, guid: 1da814acffe7a4c488b2c8a14667ea52,
+    type: 3}
 --- !u!4 &302988620
 Transform:
   m_ObjectHideFlags: 0
