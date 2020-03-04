@@ -5,21 +5,28 @@ using UnityEngine;
 
 public class Navigator : MonoBehaviour
 {
-private OVRBoundary boundary;
-private AudioSource audioData;
     private OVRBoundary.BoundaryTestResult boundary_result;
     private OVRCameraRig PlayerCamera;
     private OVRPlayerController PlayerController;
     private Light RedLight;
 
-    public GameObject albi;
+    public GameObject Target;
+    public GameObject BoundaryPoint;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
     private float initialHeartbeatPitch;
     private float initialLightIntensity;
+    private Vector3 initialPlayerPosition;
+    private OVRBoundary boundary;
     
     private float targetMinDistance;
+
+    private System.Random random;
+
+    private List<GameObject> guardianBoundariesPoint;
+
+    private int countTargetsHit = 0;
     private enum Directions {
         LEFT,
         RIGHT,
@@ -33,17 +40,19 @@ private AudioSource audioData;
         PlayerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<OVRPlayerController>();
         RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
-        albi = GameObject.FindGameObjectWithTag("albi");
         Heartbeat = PlayerController.GetComponent<AudioSource>();
         initialHeartbeatPitch = Heartbeat.pitch;
         initialLightIntensity = RedLight.intensity;
-        targetMinDistance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
+        initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        boundary = OVRManager.boundary;
+        guardianBoundariesPoint = new List<GameObject>();
+        random = new System.Random();
+        createNextTarget(PlayerCamera.centerEyeAnchor.position);
     }
 
     // Update is called once per frame 
     void Update()
     {
-        boundary = OVRManager.boundary;
         /*
         This works!
         */
@@ -81,20 +90,20 @@ private AudioSource audioData;
         // }
         String log = boundary_result_head.ClosestDistance.ToString();
 
-        debugDrawForward(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
-        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, albi.transform.position, PlayerCamera.centerEyeAnchor.up);
+        debugDrawForward(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
+        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, Target.transform.position, PlayerCamera.centerEyeAnchor.up);
 
-        float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, albi.transform.position);
+        float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
         scaleHeartbeat(cur_distance);
         scaleLight(cur_distance);
 
-        log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
-        log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
-        log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
-        log += String.Format("\n Distance: {0}", PlayerCamera.centerEyeAnchor.position.z);
-        // log += String.Format("\n albi is at your {0}", dir);
+        // log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
+        // log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
+        // log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
+        // log += String.Format("\n Albi position: {0}", Target.transform.position);
+        // log += String.Format("\n Target is at your {0}", dir);
 
-        QuestDebug.Instance.Log(log);
+        // QuestDebug.Instance.Log(log);
 
         // if (dir == Directions.RIGHT) {
         //     RedLight.color = Color.yellow;
@@ -139,7 +148,9 @@ private AudioSource audioData;
         float modifierFactor = distanceFromTarget - targetMinDistance;
         //I'm going away from the target
         if (modifierFactor > 0) {
-            Heartbeat.pitch = initialHeartbeatPitch + modifierFactor;
+            // if(Heartbeat.pitch < 2 ){
+            Heartbeat.pitch = initialHeartbeatPitch + modifierFactor * 2;
+            // }
         } 
         // We are going towards the target so we have to update mindistance
         else {
@@ -159,5 +170,61 @@ private AudioSource audioData;
             RedLight.intensity = initialLightIntensity;
         }
     }
+
+    public void stepGame() {
+        countTargetsHit += 1;
+        QuestDebug.Instance.Log(String.Format("Hit {0} targets", countTargetsHit));
+        Destroy(Target);
+        foreach (var item in guardianBoundariesPoint)
+        {
+            Destroy(item);
+        }
+        guardianBoundariesPoint.Clear();
+        // Put here the procedural stufff
+        createNextTarget(PlayerCamera.centerEyeAnchor.position);
+    }
 	
+    private void createNextTarget(Vector3 playerPosition){
+        Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.OuterBoundary);
+        // float maxDistance = -1;
+        // float currDistance = -1;
+        // Vector3 targetPosition = playerPosition;
+        Vector3 targetPosition = guardianBoundaries[random.Next(guardianBoundaries.Length)];
+
+        // for (int i = 0; i < Math.Min(1, guardianBoundaries.Length); i++)
+        // {
+        //     int idx = random.Next(guardianBoundaries.Length);
+        //     Vector3 point = guardianBoundaries[idx];
+            
+        //     var asd = Instantiate(BoundaryPoint, point, transform.rotation);
+        //     asd.transform.position += initialPlayerPosition; 
+        //     asd.transform.position += new Vector3(0, 2f, 0);
+        //     guardianBoundariesPoint.Add(asd);
+
+        //     currDistance = getDistanceFromTarget(playerPosition, point + initialPlayerPosition + new Vector3(0, 2f, 0));
+        //     if (maxDistance < currDistance){
+        //         maxDistance = currDistance;
+        //         targetPosition = point;
+        //     }
+        // }
+        
+        // foreach (Vector3 point in guardianBoundaries)
+        // {
+        //     // var asd = Instantiate(BoundaryPoint, point, transform.rotation);
+        //     // asd.transform.position += initialPlayerPosition; 
+        //     // asd.transform.position += new Vector3(0, 2f, 0);
+        //     // guardianBoundariesPoint.Add(asd);
+
+        //     currDistance = getDistanceFromTarget(playerPosition, point + initialPlayerPosition + new Vector3(0, 2f, 0));
+        //     if (maxDistance < currDistance){
+        //         maxDistance = currDistance;
+        //         targetPosition = point;
+        //     }
+        // }
+        Target = Instantiate(Target, targetPosition, transform.rotation);
+        Target.transform.position += initialPlayerPosition; 
+        Target.transform.position += new Vector3(0, 2f, 0);
+        targetMinDistance = getDistanceFromTarget(playerPosition, Target.transform.position);
+        // QuestDebug.Instance.Log("Created new target!");
+    }
 }

@@ -8,6 +8,9 @@ TagManager:
   - casa
   - albi
   - PlayerController
+  - Target
+  - Navigator
+  - GameMaster
   layers:
   - Default
   - TransparentFX
