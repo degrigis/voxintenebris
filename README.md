@@ -8,7 +8,7 @@
 
 ## Current Status
 - Game Scripting :gear:
-     - [ ] Procedurally generating the sequence of actions to escape the nightmare inside the Guardian boundaries.
+     - [X] Procedurally generating the sequence of actions to escape the nightmare inside the Guardian boundaries.
      - [X] Actions scripting
           - [X] Opening doors. 
           - [X] Light up the room when player make sounds 
