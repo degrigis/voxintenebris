@@ -22,7 +22,7 @@ public class LightControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        setIntensity = AudioInput.lerpY;
+        setIntensity = AudioInput.lerpY * 10f;
         lt.intensity = setIntensity;
         Debug.Log("updt intensity " + lt.intensity);
 
