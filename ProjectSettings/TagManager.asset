@@ -11,6 +11,7 @@ TagManager:
   - Target
   - Navigator
   - GameMaster
+  - BenignSpirit
   layers:
   - Default
   - TransparentFX
