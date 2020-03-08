@@ -25,6 +25,7 @@ public class Navigator : MonoBehaviour
     private Vector3 initialPlayerLocalPosition;
     private OVRBoundary boundary;
     
+    public float targetChangeThreshold = 3;
     private float targetMinDistance;
 
     private Boolean already_hit;
@@ -209,16 +210,15 @@ public class Navigator : MonoBehaviour
                     // Play breaking light 
                     SmashLightSound.Play(0);
                     Destroy(CurrentTarget);
-                    QuestDebug.Instance.Log("Creating next target"); 
-                    createNextTarget(PlayerCamera.centerEyeAnchor.position);
-                    QuestDebug.Instance.Log("Next target created"); 
+                    // QuestDebug.Instance.Log("Creating next target"); 
+                    // createNextTarget(PlayerCamera.centerEyeAnchor.position);
+                    // QuestDebug.Instance.Log("Next target created"); 
                     break;
                 
                 case "TargetManager":
-                    //countTargetsHit += 1;
+                    countTargetsHit += 1;
                     //QuestDebug.Instance.Log(String.Format("Hit {0} targets", countTargetsHit));
                     Destroy(CurrentTarget);
-                    lightEvent();
                     // foreach (var item in guardianBoundariesPoint)
                     // {
                     //     Destroy(item);
@@ -234,7 +234,17 @@ public class Navigator : MonoBehaviour
                     break;
             }
             stepGameTimer = 0;
+            generateNextEvent(MyEvent.ToString());
        }
+    }
+
+    private void generateNextEvent(string prevEventId){
+        if(prevEventId == "TargetManager" && countTargetsHit >= targetChangeThreshold){
+            countTargetsHit = 0;
+            lightEvent();
+        } else {
+            createNextTarget(PlayerCamera.centerEyeAnchor.position);
+        }
     }
 
     private void lightEvent() {
