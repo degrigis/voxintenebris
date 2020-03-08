@@ -10,24 +10,33 @@ public class Navigator : MonoBehaviour
     private OVRPlayerController PlayerController;
     private Light RedLight;
 
-    public GameObject Target;
+    public GameObject TargetPrefab;
+    private GameObject CurrentTarget;
     public GameObject BoundaryPoint;
     public GameObject EvilDoor;
+    public GameObject SmashLightPrefab;
+    private AudioSource SmashLightSound;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
     private float initialHeartbeatPitch;
     private float initialLightIntensity;
     private Vector3 initialPlayerPosition;
+    private Vector3 initialPlayerLocalPosition;
     private OVRBoundary boundary;
     
     private float targetMinDistance;
+
+    private Boolean already_hit;
 
     private System.Random random;
 
     private List<GameObject> guardianBoundariesPoint;
 
     private int countTargetsHit = 0;
+    private int methodCounter = 0;
+    private float stepGameTimer;
+    private float stepGameDelay = 1f;
     private enum Directions {
         LEFT,
         RIGHT,
@@ -37,14 +46,20 @@ public class Navigator : MonoBehaviour
     void Start()
     {
         Debug.Log("Navigator started!");
+        stepGameTimer = 0f;
         PlayerCamera = GameObject.FindGameObjectWithTag("casa").GetComponent<OVRCameraRig>();
         PlayerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<OVRPlayerController>();
         RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
         Heartbeat = PlayerController.GetComponent<AudioSource>();
+        SmashLightSound = GetComponent<AudioSource>();
         initialHeartbeatPitch = Heartbeat.pitch;
         initialLightIntensity = RedLight.intensity;
         initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        initialPlayerLocalPosition = PlayerCamera.centerEyeAnchor.localPosition;
+        QuestDebug.Instance.Log(initialPlayerPosition.ToString());
+        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + new Vector3(initialPlayerLocalPosition.x, 0, initialPlayerLocalPosition.z), transform.rotation);
+        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + , transform.rotation);
         boundary = OVRManager.boundary;
         guardianBoundariesPoint = new List<GameObject>();
         random = new System.Random();
@@ -79,7 +94,7 @@ public class Navigator : MonoBehaviour
         //      GameObject.Find("RedLight").GetComponent<Light>().color =  Color.red;
         // }  
 
-        OVRBoundary.BoundaryTestResult boundary_result_head = boundary.TestNode(OVRBoundary.Node.Head, OVRBoundary.BoundaryType.OuterBoundary);
+        // OVRBoundary.BoundaryTestResult boundary_result_head = boundary.TestNode(OVRBoundary.Node.Head, OVRBoundary.BoundaryType.OuterBoundary);
         // OVRBoundary.BoundaryTestResult boundary_result_left_hand = boundary.TestNode(OVRBoundary.Node.HandLeft, OVRBoundary.BoundaryType.OuterBoundary);
         // OVRBoundary.BoundaryTestResult boundary_result_right_hand = boundary.TestNode(OVRBoundary.Node.HandRight, OVRBoundary.BoundaryType.OuterBoundary);
         // if(boundary_result_head.IsTriggering){
@@ -89,14 +104,16 @@ public class Navigator : MonoBehaviour
         //     // QuestDebug.Instance.Log("Ah not triggered!");
         //     RedLight.color =  Color.green;
         // }
-        String log = boundary_result_head.ClosestDistance.ToString();
+        // String log = boundary_result_head.ClosestDistance.ToString();
 
-        debugDrawForward(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
-        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, Target.transform.position, PlayerCamera.centerEyeAnchor.up);
+        // debugDrawForward(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
+        stepGameTimer += Time.deltaTime;
+        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
 
-        float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
+        float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, CurrentTarget.transform.position);
         scaleHeartbeat(cur_distance);
         scaleLight(cur_distance);
+
 
         // log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
         // log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
@@ -150,7 +167,7 @@ public class Navigator : MonoBehaviour
         //I'm going away from the target
         if (modifierFactor > 0) {
             // if(Heartbeat.pitch < 2 ){
-            Heartbeat.pitch = initialHeartbeatPitch + modifierFactor * 2;
+            Heartbeat.pitch = initialHeartbeatPitch + modifierFactor * 1.3f;
             // }
         } 
         // We are going towards the target so we have to update mindistance
@@ -172,32 +189,115 @@ public class Navigator : MonoBehaviour
         }
     }
 
-    public void stepGame() {
-        countTargetsHit += 1;
-        QuestDebug.Instance.Log(String.Format("Hit {0} targets", countTargetsHit));
-        Destroy(Target);
-        foreach (var item in guardianBoundariesPoint)
-        {
-            Destroy(item);
-        }
-        guardianBoundariesPoint.Clear();
-            // Put here the procedural stuff
-        spawnDoor();
-        createNextTarget(PlayerCamera.centerEyeAnchor.position);
+    public bool IsTimeToTriggerEvent(){
+         if(stepGameTimer > stepGameDelay)
+            return true;
+        else 
+            return false;
     }
 
-    private void spawnDoor() {
-        Vector3 doorPosition =  PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward; 
-        EvilDoor = Instantiate(EvilDoor, doorPosition, PlayerCamera.centerEyeAnchor.rotation);
-        QuestDebug.Instance.Log("Door spawned!!");
+
+    public void stepGame(MonoBehaviour MyEvent) {
+        // QuestDebug.Instance.Log(String.Format("Before {0}", MyEvent.ToString()));
+        if(IsTimeToTriggerEvent()){
+            QuestDebug.Instance.Log(String.Format("{0} - {1}", MyEvent.ToString(), stepGameTimer));
+            // QuestDebug.Instance.Log(String.Format("Triggering {0}", MyEvent.ToString()));
+            switch(MyEvent.ToString()){
+
+                case "SmashLightManager":  
+                    QuestDebug.Instance.Log("Destroying Lignt");
+                    // Play breaking light 
+                    SmashLightSound.Play(0);
+                    Destroy(CurrentTarget);
+                    QuestDebug.Instance.Log("Creating next target"); 
+                    createNextTarget(PlayerCamera.centerEyeAnchor.position);
+                    QuestDebug.Instance.Log("Next target created"); 
+                    break;
+                
+                case "TargetManager":
+                    //countTargetsHit += 1;
+                    //QuestDebug.Instance.Log(String.Format("Hit {0} targets", countTargetsHit));
+                    Destroy(CurrentTarget);
+                    lightEvent();
+                    // foreach (var item in guardianBoundariesPoint)
+                    // {
+                    //     Destroy(item);
+                    // }
+                    // guardianBoundariesPoint.Clear();
+                        // Put here the procedural stuff
+                    // spawnDoor();
+                    // doorEvent();
+                    // createNextTarget(PlayerCamera.centerEyeAnchor.position);
+                    break;
+                default:
+                    QuestDebug.Instance.Log(MyEvent.ToString());
+                    break;
+            }
+            stepGameTimer = 0;
+       }
+    }
+
+    private void lightEvent() {
+        Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
+        furthestPoint.y = PlayerCamera.centerEyeAnchor.position.y + 0.5f;
+        CurrentTarget = Instantiate(SmashLightPrefab, furthestPoint, transform.rotation);
+        CurrentTarget.transform.Rotate(90, 0, 0);
+        // AudioSource ass = CurrentTarget.GetComponent<AudioSource>();
+        // SmashLightSound = gameObject.AddComponent<AudioSource>();
+        // SmashLightSound.clip = ass.clip;
+        // debugDrawForward(PlayerCamera.centerEyeAnchor.position -  new Vector3(0, 2f, 0), SmashLight.transform.position);
+    }
+
+    private void doorEvent() {
+        Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
+        furthestPoint.y = 0;
+        var asd = Instantiate(BoundaryPoint, furthestPoint, transform.rotation);
+        asd.transform.position += initialPlayerPosition; 
+        asd.transform.position += new Vector3(0, 2f, 0);
+        debugDrawForward(PlayerCamera.centerEyeAnchor.position -  new Vector3(0, 2f, 0), asd.transform.position);
+        var currPlayerDirection =  PlayerCamera.centerEyeAnchor.position;
+        var currPlayerRotation =  PlayerCamera.centerEyeAnchor.rotation;
+        currPlayerDirection.y = 0;
+        // Vector3 direction = PlayerCamera.centerEyeAnchor.position - furthestPoint;
+        Vector3 direction = furthestPoint - currPlayerDirection;
+        direction.y = 0;
+        // Vector3 perpendicularVector = Vector3.Cross(direction, Vector3.up).normalized;
+        // var asd2 = Instantiate(BoundaryPoint, perpendicularVector, transform.rotation);
+        // asd2.transform.position += initialPlayerPosition; 
+        float angleValue = Vector3.Angle(transform.position, direction);
+        // Vector3 result = currPlayerDirection + direction.normalized * 1.5f;
+        float dir = Vector3.Dot(direction, Vector3.forward);
+        QuestDebug.Instance.Log(direction.normalized.ToString());
+        Vector3 result = PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward * 1.5f;
+        spawnDoor(result, angleValue);
+    }
+
+    private void spawnDoor(Vector3 doorPosition, float rotModifier){
+        
+        // Vector3 doorPosition =  PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward * 1.5f; 
+        doorPosition.y = 0;
+        // var asd = transform;
+        // asd.Rotate(new Vector3(0, rotModifier, 0));
+        // EvilDoor = Instantiate(EvilDoor, doorPosition, new Quaternion(0, PlayerCamera.centerEyeAnchor.rotation.eulerAngles.y, 0, 0));
+        // Quaternion qqq =  Quaternion.LookRotation(PlayerCamera.centerEyeAnchor.forward, Vector3.up);
+        // Quaternion qqq1 = new Quaternion(0, qqq.y, 0, 0);
+        doorPosition.x = initialPlayerPosition.x;
+        doorPosition.z = initialPlayerPosition.z;
+        EvilDoor = Instantiate(EvilDoor, initialPlayerPosition, transform.rotation);
+        var aaaa = PlayerCamera.centerEyeAnchor;
+        // aaaa.rotation = new Quaternion(0, aaaa.rotation.eulerAngles.y, 0, 0 );
+        EvilDoor.transform.LookAt(aaaa);
+        // QuestDebug.Instance.Log("Door spawned!!");
     }
 	
     private void createNextTarget(Vector3 playerPosition){
         Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.OuterBoundary);
+        QuestDebug.Instance.Log("After guardianBoundaries"); 
         // float maxDistance = -1;
         // float currDistance = -1;
         // Vector3 targetPosition = playerPosition;
         Vector3 targetPosition = guardianBoundaries[random.Next(guardianBoundaries.Length)];
+        QuestDebug.Instance.Log("After Target Position"); 
 
         // for (int i = 0; i < Math.Min(1, guardianBoundaries.Length); i++)
         // {
@@ -229,10 +329,32 @@ public class Navigator : MonoBehaviour
         //         targetPosition = point;
         //     }
         // }
-        Target = Instantiate(Target, targetPosition, transform.rotation);
-        Target.transform.position += initialPlayerPosition; 
-        Target.transform.position += new Vector3(0, 2f, 0);
-        targetMinDistance = getDistanceFromTarget(playerPosition, Target.transform.position);
-        // QuestDebug.Instance.Log("Created new target!");
+        CurrentTarget = Instantiate(TargetPrefab, targetPosition, transform.rotation);
+        QuestDebug.Instance.Log("After Instantiate"); 
+        CurrentTarget.transform.position += initialPlayerPosition; 
+        CurrentTarget.transform.position += new Vector3(0, 2f, 0);
+        targetMinDistance = getDistanceFromTarget(playerPosition, CurrentTarget.transform.position);
+        QuestDebug.Instance.Log("Before return"); 
+    }
+
+    private Vector3 getFurthestPoint(Vector3 startPoint) {
+        Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.PlayArea);
+        float maxDistance = -1;
+        float currDistance = -1;
+        Vector3 furthestPosition = startPoint;
+        foreach (Vector3 point in guardianBoundaries)
+        {
+            // var asd = Instantiate(BoundaryPoint, point, transform.rotation);
+            // asd.transform.position += initialPlayerPosition; 
+            // asd.transform.position += new Vector3(0, 2f, 0);
+            // guardianBoundariesPoint.Add(asd);
+
+            currDistance = getDistanceFromTarget(startPoint, point + initialPlayerPosition + new Vector3(0, 2f, 0));
+            if (maxDistance < currDistance){
+                maxDistance = currDistance;
+                furthestPosition = point + initialPlayerPosition;
+            }
+        }
+        return furthestPosition;
     }
 }

@@ -12,7 +12,7 @@ public class handtrackinggrab : OVRGrabber
     {
         base.Start();
         GetComponent<OVRHand>();
-        QuestDebug.Instance.Log("handstuff started!!");
+        // QuestDebug.Instance.Log("handstuff started!!");
     }
 
     public override void Update()

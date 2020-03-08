@@ -2,24 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TargetManager : MonoBehaviour
+public class SmashLightManager : MonoBehaviour
 {
-    // Start is called before the first frame update
+    private Navigator navigator;
 
-   private Navigator navigator;
-   void OnCollisionEnter(Collision collision)
-    {
-        QuestDebug.Instance.Log("Collision Detected!!");
-    }
+
 
     private void OnTriggerEnter(Collider other)
     {
-        // QuestDebug.Instance.Log("Trigger Detected!!");
+        // QuestDebug.Instance.Log("Light Detected!!");
         navigator = GameObject.FindGameObjectWithTag("GameMaster").GetComponent<Navigator>();
         navigator.stepGame(this);
     }
+
+    // Start is called before the first frame update
     void Start()
     {
+        
     }
 
     // Update is called once per frame
@@ -29,6 +28,6 @@ public class TargetManager : MonoBehaviour
     }
 
     public override string ToString(){
-        return "TargetManager";
+        return "SmashLightManager";
     }
 }
