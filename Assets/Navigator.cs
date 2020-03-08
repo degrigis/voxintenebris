@@ -239,8 +239,9 @@ public class Navigator : MonoBehaviour
 
     private void lightEvent() {
         Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
-        furthestPoint.y = PlayerCamera.centerEyeAnchor.position.y + 0.5f;
-        CurrentTarget = Instantiate(SmashLightPrefab, furthestPoint, transform.rotation);
+        var finalPosition = movePointTowardsPlayer(furthestPoint);
+        finalPosition.y = PlayerCamera.centerEyeAnchor.position.y + 0.5f;
+        CurrentTarget = Instantiate(SmashLightPrefab, finalPosition, transform.rotation);
         CurrentTarget.transform.Rotate(90, 0, 0);
         // AudioSource ass = CurrentTarget.GetComponent<AudioSource>();
         // SmashLightSound = gameObject.AddComponent<AudioSource>();
@@ -296,7 +297,7 @@ public class Navigator : MonoBehaviour
         // float maxDistance = -1;
         // float currDistance = -1;
         // Vector3 targetPosition = playerPosition;
-        Vector3 targetPosition = guardianBoundaries[random.Next(guardianBoundaries.Length)];
+        Vector3 targetPosition = guardianBoundaries[random.Next(guardianBoundaries.Length)] + initialPlayerPosition;
         QuestDebug.Instance.Log("After Target Position"); 
 
         // for (int i = 0; i < Math.Min(1, guardianBoundaries.Length); i++)
@@ -329,16 +330,15 @@ public class Navigator : MonoBehaviour
         //         targetPosition = point;
         //     }
         // }
-        CurrentTarget = Instantiate(TargetPrefab, targetPosition, transform.rotation);
+        var finalPosition = movePointTowardsPlayer(targetPosition);
+        CurrentTarget = Instantiate(TargetPrefab, finalPosition, transform.rotation);
         QuestDebug.Instance.Log("After Instantiate"); 
-        CurrentTarget.transform.position += initialPlayerPosition; 
-        CurrentTarget.transform.position += new Vector3(0, 2f, 0);
         targetMinDistance = getDistanceFromTarget(playerPosition, CurrentTarget.transform.position);
         QuestDebug.Instance.Log("Before return"); 
     }
 
     private Vector3 getFurthestPoint(Vector3 startPoint) {
-        Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.PlayArea);
+        Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.OuterBoundary);
         float maxDistance = -1;
         float currDistance = -1;
         Vector3 furthestPosition = startPoint;
@@ -356,5 +356,14 @@ public class Navigator : MonoBehaviour
             }
         }
         return furthestPosition;
+    }
+    
+    private Vector3 movePointTowardsPlayer(Vector3 point){
+        point.y = 0;
+        var currPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        currPlayerPosition.y = 0;
+        Vector3 direction = point - currPlayerPosition;
+        var finalPosition = point - direction.normalized * 0.5f;
+        return finalPosition;
     }
 }
