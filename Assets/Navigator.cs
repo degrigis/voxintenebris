@@ -34,6 +34,7 @@ public class Navigator : MonoBehaviour
     public GameObject BoundaryPoint;
     public GameObject EvilDoor;
     public GameObject SmashLightPrefab;
+    public GameObject VictoryTargetPrefab;
 
     /*
     AudioSources references.
@@ -44,6 +45,8 @@ public class Navigator : MonoBehaviour
     private AudioSource BenignStayDownAudio;
     private AudioSource BenignStandUpAudio;
     private AudioSource BenignSmashLight;
+    private AudioSource BenignOneLastStep;
+    private AudioSource BenignWakeUpVictory;
     private AudioSource BadSpiritYouDead;
     private AudioSource Heartbeat;
     private AudioSource Breath;
@@ -136,6 +139,17 @@ public class Navigator : MonoBehaviour
     stay down.
     */
     private bool isPlayerDown = false;
+
+    /*
+    Number of special events that the player needs to
+    trigger before winning
+    */
+    public int eventsBeforeVictory = 3;
+
+    /*
+    Number of special events triggered so far
+    */
+    public int specialEventGenerated = 0;
     
     void Start()
     {
@@ -149,6 +163,8 @@ public class Navigator : MonoBehaviour
         Breath = PlayerController.GetComponents<AudioSource>()[1];
 
         // Getting audio sources 
+        BenignWakeUpVictory = GetComponents<AudioSource>()[8];
+        BenignOneLastStep = GetComponents<AudioSource>()[7];
         BenignSmashLight = GetComponents<AudioSource>()[6];
         BadSpiritYouDead = GetComponents<AudioSource>()[5];
         BenignStandUpAudio = GetComponents<AudioSource>()[4];
@@ -408,6 +424,11 @@ public class Navigator : MonoBehaviour
                     countTargetsHit += 1;
                     Destroy(CurrentTarget);
                     break;
+
+                case "VictoryTargetManager":
+                    Destroy(CurrentTarget);
+                    BenignWakeUpVictory.Play(0);
+                    break;
                 
                 default:
                     //QuestDebug.Instance.Log(MyEvent.ToString());
@@ -438,21 +459,50 @@ public class Navigator : MonoBehaviour
     As for now they all have same probability.
     */
     private void generateNextRandomEvent(){
-        int choice = random.Next(3);
-        switch(choice){
-            case 0:
-                lightEvent();
+        if (specialEventGenerated == eventsBeforeVictory){
+            victoryEvent();
+        } else {
+            int choice = random.Next(3);
+            switch(choice){
+                case 0:
+                    lightEvent();
+                    break;
+                case 1:
+                    stayStillEvent();
+                    break;
+                case 2:
+                    stayDownEvent();
+                    break;
+                default:
+                    QuestDebug.Instance.Log("WTF?!");
+                    break;
+            }
+            specialEventGenerated += 1;
+        }
+    }
+
+    /*
+    Here we generate the last target (VictoryTarget) that the player has
+    to reach in order to win the game.
+    */
+    private void victoryEvent(){
+        Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
+        var finalPosition = movePointTowardsPlayer(furthestPoint);
+        CurrentTarget = Instantiate(VictoryTargetPrefab, finalPosition, transform.rotation);
+        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
+        // Redirect the audio based on the target positon with respect to the player position
+        switch (dir) {
+            case Directions.LEFT:
+                BenignOneLastStep.panStereo = -1;
                 break;
-            case 1:
-                stayStillEvent();
-                break;
-            case 2:
-                stayDownEvent();
+            case Directions.RIGHT:
+                BenignOneLastStep.panStereo = 1;
                 break;
             default:
-                QuestDebug.Instance.Log("WTF?!");
+                BenignOneLastStep.panStereo = 0;
                 break;
         }
+        BenignOneLastStep.Play(0);
     }
 
     /*
