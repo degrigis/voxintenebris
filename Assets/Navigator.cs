@@ -13,9 +13,11 @@ public class Navigator : MonoBehaviour
     public GameObject TargetPrefab;
     private GameObject CurrentTarget;
     public GameObject BoundaryPoint;
+    public GameObject BenignSpirit;
     public GameObject EvilDoor;
     public GameObject SmashLightPrefab;
     private AudioSource SmashLightSound;
+    private AudioSource BenignStayStillAudio;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
@@ -43,6 +45,8 @@ public class Navigator : MonoBehaviour
         RIGHT,
         STRAIGHT
     }
+    private Vector3 playerStillPosition;
+    private bool isPlayerStill = false;
     
     void Start()
     {
@@ -53,7 +57,9 @@ public class Navigator : MonoBehaviour
         RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
         Heartbeat = PlayerController.GetComponent<AudioSource>();
-        SmashLightSound = GetComponent<AudioSource>();
+        // BenignStayStillAudio = BenignSpirit.GetComponents<AudioSource>()[1];
+        BenignStayStillAudio = GetComponents<AudioSource>()[1];
+        SmashLightSound = GetComponents<AudioSource>()[0];
         initialHeartbeatPitch = Heartbeat.pitch;
         initialLightIntensity = RedLight.intensity;
         initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
@@ -109,13 +115,27 @@ public class Navigator : MonoBehaviour
 
         // debugDrawForward(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
         stepGameTimer += Time.deltaTime;
-        Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
 
-        float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, CurrentTarget.transform.position);
-        scaleHeartbeat(cur_distance);
-        scaleLight(cur_distance);
+        if (isPlayerStill && BenignStayStillAudio.isPlaying) { 
+            var currentPosition = PlayerCamera.centerEyeAnchor.position;
+            if (currentPosition.x > playerStillPosition.x + 0.5 || currentPosition.x < playerStillPosition.x - 0.5 || 
+                currentPosition.z > playerStillPosition.z + 0.5 || currentPosition.z < playerStillPosition.z - 0.5){
+                    QuestDebug.Instance.Log("You dead!");
+                }
+        }
 
+        if (isPlayerStill && !BenignStayStillAudio.isPlaying) {
+            countTargetsHit = 0;
+            isPlayerStill = false;
+            createNextTarget(PlayerCamera.centerEyeAnchor.position);
+        }
 
+        if(CurrentTarget != null) {
+            Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
+            float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, CurrentTarget.transform.position);
+            scaleHeartbeat(cur_distance);
+            scaleLight(cur_distance);
+        }
         // log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
         // log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
         // log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
@@ -228,6 +248,7 @@ public class Navigator : MonoBehaviour
                     // spawnDoor();
                     // doorEvent();
                     // createNextTarget(PlayerCamera.centerEyeAnchor.position);
+                    // stayStillEvent();
                     break;
                 default:
                     QuestDebug.Instance.Log(MyEvent.ToString());
@@ -241,10 +262,31 @@ public class Navigator : MonoBehaviour
     private void generateNextEvent(string prevEventId){
         if(prevEventId == "TargetManager" && countTargetsHit >= targetChangeThreshold){
             countTargetsHit = 0;
-            lightEvent();
+            generateNextRandomEvent();
         } else {
             createNextTarget(PlayerCamera.centerEyeAnchor.position);
         }
+    }
+
+    private void generateNextRandomEvent(){
+        int choice = random.Next(2);
+        switch(choice){
+            case 0:
+                lightEvent();
+                break;
+            case 1:
+                stayStillEvent();
+                break;
+            default:
+                QuestDebug.Instance.Log("WTF?!");
+                break;
+        }
+    }
+
+    private void stayStillEvent(){
+        playerStillPosition = PlayerCamera.centerEyeAnchor.position;
+        isPlayerStill = true;
+        BenignStayStillAudio.Play(0);
     }
 
     private void lightEvent() {
