@@ -7,7 +7,10 @@ public class SmashLightManager : MonoBehaviour
     private Navigator navigator;
 
 
-
+    /*
+    When a collision is detected with a light we call the stepGame of the
+    game Master object.
+    */
     private void OnTriggerEnter(Collider other)
     {
         // QuestDebug.Instance.Log("Light Detected!!");

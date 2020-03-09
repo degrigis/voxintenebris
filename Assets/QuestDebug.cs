@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/*
+Canvas for debugging inside the game.
+*/
+
 public class QuestDebug : MonoBehaviour
 {
 

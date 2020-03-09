@@ -7,11 +7,11 @@ public class TargetManager : MonoBehaviour
     // Start is called before the first frame update
 
    private Navigator navigator;
-   void OnCollisionEnter(Collision collision)
-    {
-        QuestDebug.Instance.Log("Collision Detected!!");
-    }
-
+   
+    /*
+    When a collision is detected with a target we call the stepGame of the
+    game Master object.
+    */
     private void OnTriggerEnter(Collider other)
     {
         // QuestDebug.Instance.Log("Trigger Detected!!");

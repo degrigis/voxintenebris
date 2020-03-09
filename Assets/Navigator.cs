@@ -5,61 +5,136 @@ using UnityEngine;
 
 public class Navigator : MonoBehaviour
 {
-    private OVRBoundary.BoundaryTestResult boundary_result;
+    /*
+    Global reference to the PlayerHead.
+    We used this to get the current position opf the player.
+    */
     private OVRCameraRig PlayerCamera;
+    
+    /*
+    Global reference to the PlayerController component.
+    We used this to extract the AudioSource of the heartbeat and 
+    the breath.
+    */
     private OVRPlayerController PlayerController;
-    private Light RedLight;
 
+    /*
+    Getting the initialPlayer position when the game starts.
+    This is used to rebase the LocalPosition of other objects.
+    */
+    private Vector3 initialPlayerPosition;
+    private Vector3 initialPlayerLocalPosition;
+    
+    /*
+    Global references to objects in the scene.
+    */
+    private Light RedLight;
     public GameObject TargetPrefab;
     private GameObject CurrentTarget;
     public GameObject BoundaryPoint;
-    public GameObject BenignSpirit;
     public GameObject EvilDoor;
     public GameObject SmashLightPrefab;
+
+    /*
+    AudioSources references.
+    */
     private AudioSource SmashLightSound;
     private AudioSource BenignStayStillAudio;
     private AudioSource BenignGoingDownAudio;
     private AudioSource BenignStayDownAudio;
     private AudioSource BenignStandUpAudio;
-
     private AudioSource BenignSmashLight;
     private AudioSource BadSpiritYouDead;
-    private LineRenderer lineRenderer;
-
     private AudioSource Heartbeat;
     private AudioSource Breath;
 
+    /*
+    Debug stuff, will remove.
+    */
+    private LineRenderer lineRenderer;
+
+    /*
+    Global reference of the initial values of the 
+    heartbeat pitch and the light intensity.
+    */
     private float initialHeartbeatPitch;
     private float initialLightIntensity;
-    private Vector3 initialPlayerPosition;
-    private Vector3 initialPlayerLocalPosition;
 
+
+    /*
+    This is used to keep track of the time that 
+    has been passed since last target hit by the player.
+    */
     private float TimerDeadline;
+    
+    /*
+    This is used to kill the player
+    if he doesn't reach a target in time.
+    */
     private float DeadlineDelta = 30;
-
+    
+    /*
+    Boundary manager object used to get the Guardian's
+    boundaries.
+    */
     private OVRBoundary boundary;
     
+    /*
+    How many normal targets you are supposed to reach
+    before generating a special event.
+    */
     public float targetChangeThreshold = 3;
+ 
+    /*
+    The minimal distance from the player and a spawned target.
+    This is used to accellerate the hearbeat.
+    */
     private float targetMinDistance;
-
-    private Boolean already_hit;
 
     private System.Random random;
 
     private List<GameObject> guardianBoundariesPoint;
 
+    /*
+    Keeps track of how many target we have reached.
+    */
     private int countTargetsHit = 0;
-    private int methodCounter = 0;
+
+    /*
+    stepGameTimer and stepGameDelay are 
+    used to avoid triggering multiple collisions event.
+    */
     private float stepGameTimer;
     private float stepGameDelay = 1f;
+    
     private enum Directions {
         LEFT,
         RIGHT,
         STRAIGHT
     }
+
+    /*
+    Used when the player has to stay still.
+    This is a reference to his position during the 
+    "stayStill" event.
+    */
     private Vector3 playerStillPosition;
+    
+    /*
+    Boolean that tells us if the player is supposed to 
+    stay still.
+    */
     private bool isPlayerStill = false;
+    
+    /*
+    Boolean that tells us is the player is moving down.
+    */
     private bool isPlayerGoingDown = false;
+    
+    /*
+    Boolean that tells us if the player is supposed to 
+    stay down.
+    */
     private bool isPlayerDown = false;
     
     void Start()
@@ -91,73 +166,44 @@ public class Navigator : MonoBehaviour
         guardianBoundariesPoint = new List<GameObject>();
         random = new System.Random();
 
-        //QuestDebug.Instance.Log(initialPlayerPosition.ToString());
-        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + new Vector3(initialPlayerLocalPosition.x, 0, initialPlayerLocalPosition.z), transform.rotation);
-        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + , transform.rotation);
- 
+        //Let's create the next target that the user is supposed to reach.
+        //WARNING: the red cubes are for debug only, the player is supposed to find them
+        //following the heartbeat.
         createNextTarget(PlayerCamera.centerEyeAnchor.position);
     }
-
-
-
 
     // Update is called once per frame 
     void Update()
     {
-        /*
-        This works!
-        */
-        /*
-        if(boundary.GetVisible()){
-            Debug.Log("Ah triggered!"); 
-            GameObject.Find("GettingOut").GetComponent<AudioSource>().Play(0);
-            GameObject.Find("RedLight").GetComponent<Light>().color =  Color.blue;
-        }else{
-            Debug.Log("Ah not triggered!");
-            GameObject.Find("GettingOut").GetComponent<AudioSource>().Pause(0);
-            GameObject.Find("RedLight").GetComponent<Light>().color =  Color.red;
-        }
-        */
-        // OVRBoundary.BoundaryTestResult boundary_result_head = boundary.TestNode(OVRBoundary.Node.Head, OVRBoundary.BoundaryType.OuterBoundary);
-        // OVRBoundary.BoundaryTestResult boundary_result_left_hand = boundary.TestNode(OVRBoundary.Node.HandLeft, OVRBoundary.BoundaryType.OuterBoundary);
-        // OVRBoundary.BoundaryTestResult boundary_result_right_hand = boundary.TestNode(OVRBoundary.Node.HandRight, OVRBoundary.BoundaryType.OuterBoundary);
-        // if(boundary_result_head.IsTriggering  || boundary_result_left_hand.IsTriggering || boundary_result_right_hand.IsTriggering ){
-        //     QuestDebug.Instance.Log("Ah triggered!");
-        //     GameObject.Find("RedLight").GetComponent<Light>().color =  Color.blue;
-        // }else{
-        //     QuestDebug.Instance.Log("Ah not triggered!");
-        //      GameObject.Find("RedLight").GetComponent<Light>().color =  Color.red;
-        // }  
-
-        // OVRBoundary.BoundaryTestResult boundary_result_head = boundary.TestNode(OVRBoundary.Node.Head, OVRBoundary.BoundaryType.OuterBoundary);
-        // OVRBoundary.BoundaryTestResult boundary_result_left_hand = boundary.TestNode(OVRBoundary.Node.HandLeft, OVRBoundary.BoundaryType.OuterBoundary);
-        // OVRBoundary.BoundaryTestResult boundary_result_right_hand = boundary.TestNode(OVRBoundary.Node.HandRight, OVRBoundary.BoundaryType.OuterBoundary);
-        // if(boundary_result_head.IsTriggering){
-        //     // QuestDebug.Instance.Log("Ah triggered!");
-        //     RedLight.color =  Color.blue;
-        // }else{
-        //     // QuestDebug.Instance.Log("Ah not triggered!");
-        //     RedLight.color =  Color.green;
-        // }
-        // String log = boundary_result_head.ClosestDistance.ToString();
-
-        // debugDrawForward(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
+        // Updating our timers.
         stepGameTimer += Time.deltaTime;
         TimerDeadline += Time.deltaTime;
         
+        // If the player didn't find the target in the 
+        // given delta, we have to kill him.
         if(TimerDeadline > DeadlineDelta){
             killPlayer();
         }
 
+        // Handling of the event in which the player is supposed to stay still.
+        // If the player is supposed to stay still and the audio is playing 
+        // we check its coordinate and if he is moving we kill him.
         if (isPlayerStill && BenignStayStillAudio.isPlaying) { 
             TimerDeadline = 0;
             var currentPosition = PlayerCamera.centerEyeAnchor.position;
+            
+            // Some delta (0.5f) to prevent unwanted imprecisions and kills.
             if (currentPosition.x > playerStillPosition.x + 0.5 || currentPosition.x < playerStillPosition.x - 0.5 || 
                 currentPosition.z > playerStillPosition.z + 0.5 || currentPosition.z < playerStillPosition.z - 0.5){
                     killPlayer();
                 }
         }
 
+        /*
+        If the player was supposed to stay still and the audio has finished to play
+        it means that the player can move again. Let's restore the variables and generate
+        the next target.
+        */
         if (isPlayerStill && !BenignStayStillAudio.isPlaying) {
             TimerDeadline = 0;
             countTargetsHit = 0;
@@ -165,6 +211,10 @@ public class Navigator : MonoBehaviour
             createNextTarget(PlayerCamera.centerEyeAnchor.position);
         }
 
+        /*
+        This is used in order to give the player time to get down if 
+        we have generated a "stayDown" event.
+        */
         if (isPlayerGoingDown && !BenignGoingDownAudio.isPlaying) {
             TimerDeadline = 0;
             isPlayerGoingDown = false;
@@ -172,14 +222,25 @@ public class Navigator : MonoBehaviour
             BenignStayDownAudio.Play(0);
         }
 
+        /*
+        If the player was supposed to stay down and the 'BenignStayDownAudio'
+        is playing, we have to kill him.
+        */
         if (isPlayerDown && BenignStayDownAudio.isPlaying) {
             TimerDeadline = 0;
             var currentPosition = PlayerCamera.centerEyeAnchor.position;
+
+            // Some delta to prevent imprecision and unwanted kills (0.5f, again)
             if (currentPosition.y > playerStillPosition.y - 0.5) {
                 killPlayer();
             }
         }
 
+        /*
+        If the player was supposed to stay down and the audio has finished to play
+        it means that the player can get up. Let's restore the variables and generate
+        the next target.
+        */
         if (isPlayerDown && !BenignStayDownAudio.isPlaying) {
             TimerDeadline = 0;
             BenignStandUpAudio.Play(0);
@@ -188,6 +249,10 @@ public class Navigator : MonoBehaviour
             createNextTarget(PlayerCamera.centerEyeAnchor.position);
         }
 
+        /*
+        Scale heartbeat and light considering the distance of the player from
+        the target he is supposed to reach
+        */
         if(CurrentTarget != null) {
             Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
             float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, CurrentTarget.transform.position);
@@ -195,39 +260,24 @@ public class Navigator : MonoBehaviour
             scaleLight(cur_distance);
         }
 
+        // Finally, let's scale the breath according to the time passed
+        // since last time the player found a target.
         scaleBreath();
       
-        // log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
-        // log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
-        // log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
-        // log += String.Format("\n Albi position: {0}", Target.transform.position);
-        // log += String.Format("\n Target is at your {0}", dir);
-
-        // QuestDebug.Instance.Log(log);
-
-        // if (dir == Directions.RIGHT) {
-        //     RedLight.color = Color.yellow;
-        // }
-        // else { 
-        //     RedLight.color = Color.magenta;
-        // }
-        //Debug.DrawRay(Player.centerEyeAnchor.position, Player.centerEyeAnchor.forward * 20, Color.red, 2.5f);
-        //debugDrawForward(Player.centerEyeAnchor.position +  Player.centerEyeAnchor.forward * 2,  Player.centerEyeAnchor.forward * 20 + Player.centerEyeAnchor.position);
-        // Debug.Log(Player.transform.position.x);
-        // QuestDebug.Instance.Log(boundary_result_head.ClosestDistance.ToString());
     }
 
-    // private string chooseDirection(){
-
-
-    // }
-
+    /*
+    Debug stuff..
+    */
     private void debugDrawForward(Vector3 start, Vector3 end){
         lineRenderer.SetVertexCount(2);
         lineRenderer.SetPosition(0, start);
         lineRenderer.SetPosition(1, end);
     }
 
+    /*
+    Method that kills the player
+    */
     private void killPlayer(){        
         
         BenignStandUpAudio.Stop();
@@ -239,10 +289,17 @@ public class Navigator : MonoBehaviour
         Breath.Stop();
         BadSpiritYouDead.Play();
 
+        //TODO: Create a new black scene with GAMEOVER and 
+        // maybe give possibility to restart the game.
+
         QuestDebug.Instance.Log("You dead!");
         
     }
 
+    /*
+    Helper to understand if the target is left or right of the current player position.
+    We can use this to play more sounds if we want. (for instance benign spirit voice)
+    */
    	private Directions getleftOrRight(Vector3 fwd, Vector3 targetDir, Vector3 up) {
 		Vector3 perp = Vector3.Cross(fwd, targetDir);
 		float dir = Vector3.Dot(perp, up);
@@ -256,10 +313,17 @@ public class Navigator : MonoBehaviour
 		}
 	}
 
+    /*
+    Helper to get the distance from two points.
+    */
     private float getDistanceFromTarget(Vector3 start, Vector3 end){
         return Vector3.Distance(start, end);
     }
 
+    /*
+    Scaling the hearbeat according to the distance from target
+    passed as parameter.
+    */
     private void scaleHeartbeat(float distanceFromTarget) {
         float modifierFactor = distanceFromTarget - targetMinDistance;
         //I'm going away from the target
@@ -275,7 +339,9 @@ public class Navigator : MonoBehaviour
         }
     }
 
-
+    /*
+    Scaling the breath
+    */
     private void scaleBreath() {
 
         float modifierPitchFactor = TimerDeadline * 0.05f;
@@ -291,6 +357,9 @@ public class Navigator : MonoBehaviour
         //QuestDebug.Instance.Log(String.Format("{0} - {1} - {2}", TimerDeadline, Breath.pitch, Breath.volume));
     }
 
+    /*
+    Scaling the global light. (do we want this?)
+    */
     private void scaleLight(float distanceFromTarget) {
         float modifierFactor = distanceFromTarget - targetMinDistance;
         //I'm going away from the target
@@ -303,6 +372,10 @@ public class Navigator : MonoBehaviour
         }
     }
 
+    /*
+    Helper method that tells us if we need to trigger an answer to a collision
+    or not.
+    */
     public bool IsTimeToTriggerEvent(){
          if(stepGameTimer > stepGameDelay)
             return true;
@@ -310,50 +383,47 @@ public class Navigator : MonoBehaviour
             return false;
     }
 
-
+    /*
+    This is the callback to collisions detections triggered inside
+    the objects SmashLightManager and TargetManager.
+    */
     public void stepGame(MonoBehaviour MyEvent) {
-        // QuestDebug.Instance.Log(String.Format("Before {0}", MyEvent.ToString()));
+
+        // Before let's check if we want to trigger a new event.
         if(IsTimeToTriggerEvent()){
             TimerDeadline = 0;
-            QuestDebug.Instance.Log(String.Format("{0} - {1}", MyEvent.ToString(), stepGameTimer));
-            // QuestDebug.Instance.Log(String.Format("Triggering {0}", MyEvent.ToString()));
-            switch(MyEvent.ToString()){
 
+            // Which event did we receive? 
+            switch(MyEvent.ToString()){
+                
                 case "SmashLightManager":  
-                    QuestDebug.Instance.Log("Destroying Lignt");
+                    //QuestDebug.Instance.Log("Destroying Lignt");
+                    
                     // Play breaking light 
                     SmashLightSound.Play(0);
                     Destroy(CurrentTarget);
-                    // QuestDebug.Instance.Log("Creating next target"); 
-                    // createNextTarget(PlayerCamera.centerEyeAnchor.position);
-                    // QuestDebug.Instance.Log("Next target created"); 
                     break;
                 
                 case "TargetManager":
                     countTargetsHit += 1;
-                    //QuestDebug.Instance.Log(String.Format("Hit {0} targets", countTargetsHit));
                     Destroy(CurrentTarget);
-                    // foreach (var item in guardianBoundariesPoint)
-                    // {
-                    //     Destroy(item);
-                    // }
-                    // guardianBoundariesPoint.Clear();
-                        // Put here the procedural stuff
-                    // spawnDoor();
-                    // doorEvent();
-                    // createNextTarget(PlayerCamera.centerEyeAnchor.position);
-                    // stayStillEvent();
-                    // stayDownEvent();
                     break;
+                
                 default:
-                    QuestDebug.Instance.Log(MyEvent.ToString());
+                    //QuestDebug.Instance.Log(MyEvent.ToString());
                     break;
             }
+
             stepGameTimer = 0;
+
             generateNextEvent(MyEvent.ToString());
        }
     }
 
+    /*
+    This is used to let the player walk around to find at least X targets.
+    X is set to 3 as for now.
+    */
     private void generateNextEvent(string prevEventId){
         if(prevEventId == "TargetManager" && countTargetsHit >= targetChangeThreshold){
             countTargetsHit = 0;
@@ -363,6 +433,10 @@ public class Navigator : MonoBehaviour
         }
     }
 
+    /*
+    Procedurally generating a special event.
+    As for now they all have same probability.
+    */
     private void generateNextRandomEvent(){
         int choice = random.Next(3);
         switch(choice){
@@ -381,31 +455,54 @@ public class Navigator : MonoBehaviour
         }
     }
 
+    /*
+    Here we force the player to get down to avoid to be killed.
+    */
     private void stayDownEvent() {
+
+        //initialize player position.
         playerStillPosition = PlayerCamera.centerEyeAnchor.position;
         isPlayerGoingDown = true; 
+      
+        // Benign spirit is telling the player to go down!
         BenignGoingDownAudio.Play(0);
     }
 
+    /*
+    Here we force the player to stay still to avoid to be killed.
+    */
     private void stayStillEvent(){
         playerStillPosition = PlayerCamera.centerEyeAnchor.position;
         isPlayerStill = true;
         BenignStayStillAudio.Play(0);
     }
 
+    /*
+    Let's create a light that the player has to destroy to avoid to die.
+    */
     private void lightEvent() {
+        // The spirit is telling the player to smash the light!
         BenignSmashLight.Play(0);
+
+        // Let's create the light at the Furthest point from the current position.
         Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
+
+        // We want to be sure that the light object is within the boundaries of the 
+        // guardian, so we scale it a bit using the helper method.
         var finalPosition = movePointTowardsPlayer(furthestPoint);
+
+        // Set the height of the light's object to be above the player.
         finalPosition.y = PlayerCamera.centerEyeAnchor.position.y + 0.5f;
+        
+        // FInally instantiate the light!
         CurrentTarget = Instantiate(SmashLightPrefab, finalPosition, transform.rotation);
         CurrentTarget.transform.Rotate(90, 0, 0);
-        // AudioSource ass = CurrentTarget.GetComponent<AudioSource>();
-        // SmashLightSound = gameObject.AddComponent<AudioSource>();
-        // SmashLightSound.clip = ass.clip;
-        // debugDrawForward(PlayerCamera.centerEyeAnchor.position -  new Vector3(0, 2f, 0), SmashLight.transform.position);
     }
 
+    /*
+    Trying to instantiate a fucking door rotate in the correct position, but FAILED.
+    TODO: Try to make this work!
+    */
     private void doorEvent() {
         Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
         furthestPoint.y = 0;
@@ -448,53 +545,34 @@ public class Navigator : MonoBehaviour
         // QuestDebug.Instance.Log("Door spawned!!");
     }
 	
+
+    /*
+    Create the next target that the user is supposed to reach.
+    We want to pick a random point on the Guardian's boundaries.
+    */
     private void createNextTarget(Vector3 playerPosition){
+
+        // Let's pick all the points beloning to the current guardian's boundaries.
         Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.OuterBoundary);
-        QuestDebug.Instance.Log("After guardianBoundaries"); 
-        // float maxDistance = -1;
-        // float currDistance = -1;
-        // Vector3 targetPosition = playerPosition;
-        Vector3 targetPosition = guardianBoundaries[random.Next(guardianBoundaries.Length)] + initialPlayerPosition;
-        QuestDebug.Instance.Log("After Target Position"); 
-
-        // for (int i = 0; i < Math.Min(1, guardianBoundaries.Length); i++)
-        // {
-        //     int idx = random.Next(guardianBoundaries.Length);
-        //     Vector3 point = guardianBoundaries[idx];
-            
-        //     var asd = Instantiate(BoundaryPoint, point, transform.rotation);
-        //     asd.transform.position += initialPlayerPosition; 
-        //     asd.transform.position += new Vector3(0, 2f, 0);
-        //     guardianBoundariesPoint.Add(asd);
-
-        //     currDistance = getDistanceFromTarget(playerPosition, point + initialPlayerPosition + new Vector3(0, 2f, 0));
-        //     if (maxDistance < currDistance){
-        //         maxDistance = currDistance;
-        //         targetPosition = point;
-        //     }
-        // }
         
-        // foreach (Vector3 point in guardianBoundaries)
-        // {
-        //     // var asd = Instantiate(BoundaryPoint, point, transform.rotation);
-        //     // asd.transform.position += initialPlayerPosition; 
-        //     // asd.transform.position += new Vector3(0, 2f, 0);
-        //     // guardianBoundariesPoint.Add(asd);
-
-        //     currDistance = getDistanceFromTarget(playerPosition, point + initialPlayerPosition + new Vector3(0, 2f, 0));
-        //     if (maxDistance < currDistance){
-        //         maxDistance = currDistance;
-        //         targetPosition = point;
-        //     }
-        // }
+        // Let's pick one of those points and rebase it according to player position.
+        Vector3 targetPosition = guardianBoundaries[random.Next(guardianBoundaries.Length)] + initialPlayerPosition;
+        
+        // Let's scale the position a bit to make sure it is inside the play area.
         var finalPosition = movePointTowardsPlayer(targetPosition);
-        CurrentTarget = Instantiate(TargetPrefab, finalPosition, transform.rotation);
-        //QuestDebug.Instance.Log("After Instantiate"); 
-        targetMinDistance = getDistanceFromTarget(playerPosition, CurrentTarget.transform.position);
-        //QuestDebug.Instance.Log("Before return"); 
 
+        // Finally create the Target!
+        CurrentTarget = Instantiate(TargetPrefab, finalPosition, transform.rotation);
+
+        // Update the min distance of the player to the target, this is used to scale the 
+        // heartbeat.
+        targetMinDistance = getDistanceFromTarget(playerPosition, CurrentTarget.transform.position);
     }
 
+    /*
+    Given a starting point we want to return the furthest point 
+    from there to the guardian's boundaries.
+    */
     private Vector3 getFurthestPoint(Vector3 startPoint) {
         Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.OuterBoundary);
         float maxDistance = -1;
@@ -502,11 +580,6 @@ public class Navigator : MonoBehaviour
         Vector3 furthestPosition = startPoint;
         foreach (Vector3 point in guardianBoundaries)
         {
-            // var asd = Instantiate(BoundaryPoint, point, transform.rotation);
-            // asd.transform.position += initialPlayerPosition; 
-            // asd.transform.position += new Vector3(0, 2f, 0);
-            // guardianBoundariesPoint.Add(asd);
-
             currDistance = getDistanceFromTarget(startPoint, point + initialPlayerPosition + new Vector3(0, 2f, 0));
             if (maxDistance < currDistance){
                 maxDistance = currDistance;
@@ -516,6 +589,10 @@ public class Navigator : MonoBehaviour
         return furthestPosition;
     }
     
+    /*
+    Helper method used to scale the position of an object toward the player
+    position.
+    */
     private Vector3 movePointTowardsPlayer(Vector3 point){
         point.y = 0;
         var currPlayerPosition = PlayerCamera.centerEyeAnchor.position;
