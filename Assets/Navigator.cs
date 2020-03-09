@@ -18,6 +18,9 @@ public class Navigator : MonoBehaviour
     public GameObject SmashLightPrefab;
     private AudioSource SmashLightSound;
     private AudioSource BenignStayStillAudio;
+    private AudioSource BenignGoingDownAudio;
+    private AudioSource BenignStayDownAudio;
+    private AudioSource BenignStandUpAudio;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
@@ -47,6 +50,8 @@ public class Navigator : MonoBehaviour
     }
     private Vector3 playerStillPosition;
     private bool isPlayerStill = false;
+    private bool isPlayerGoingDown = false;
+    private bool isPlayerDown = false;
     
     void Start()
     {
@@ -58,6 +63,9 @@ public class Navigator : MonoBehaviour
         lineRenderer = GetComponent<LineRenderer>();
         Heartbeat = PlayerController.GetComponent<AudioSource>();
         // BenignStayStillAudio = BenignSpirit.GetComponents<AudioSource>()[1];
+        BenignStandUpAudio = GetComponents<AudioSource>()[4];
+        BenignStayDownAudio = GetComponents<AudioSource>()[3];
+        BenignGoingDownAudio = GetComponents<AudioSource>()[2];
         BenignStayStillAudio = GetComponents<AudioSource>()[1];
         SmashLightSound = GetComponents<AudioSource>()[0];
         initialHeartbeatPitch = Heartbeat.pitch;
@@ -130,12 +138,33 @@ public class Navigator : MonoBehaviour
             createNextTarget(PlayerCamera.centerEyeAnchor.position);
         }
 
+        if (isPlayerGoingDown && !BenignGoingDownAudio.isPlaying) {
+            isPlayerGoingDown = false;
+            isPlayerDown = true;
+            BenignStayDownAudio.Play(0);
+        }
+
+        if (isPlayerDown && BenignStayDownAudio.isPlaying) {
+            var currentPosition = PlayerCamera.centerEyeAnchor.position;
+            if (currentPosition.y > playerStillPosition.y - 0.5) {
+                QuestDebug.Instance.Log("You dead!");
+            }
+        }
+
+        if (isPlayerDown && !BenignStayDownAudio.isPlaying) {
+            BenignStandUpAudio.Play(0);
+            countTargetsHit = 0;
+            isPlayerDown = false;
+            createNextTarget(PlayerCamera.centerEyeAnchor.position);
+        }
+
         if(CurrentTarget != null) {
             Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
             float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, CurrentTarget.transform.position);
             scaleHeartbeat(cur_distance);
             scaleLight(cur_distance);
         }
+
         // log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
         // log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
         // log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
@@ -249,6 +278,7 @@ public class Navigator : MonoBehaviour
                     // doorEvent();
                     // createNextTarget(PlayerCamera.centerEyeAnchor.position);
                     // stayStillEvent();
+                    // stayDownEvent();
                     break;
                 default:
                     QuestDebug.Instance.Log(MyEvent.ToString());
@@ -269,7 +299,7 @@ public class Navigator : MonoBehaviour
     }
 
     private void generateNextRandomEvent(){
-        int choice = random.Next(2);
+        int choice = random.Next(3);
         switch(choice){
             case 0:
                 lightEvent();
@@ -277,10 +307,19 @@ public class Navigator : MonoBehaviour
             case 1:
                 stayStillEvent();
                 break;
+            case 2:
+                stayDownEvent();
+                break;
             default:
                 QuestDebug.Instance.Log("WTF?!");
                 break;
         }
+    }
+
+    private void stayDownEvent() {
+        playerStillPosition = PlayerCamera.centerEyeAnchor.position;
+        isPlayerGoingDown = true; 
+        BenignGoingDownAudio.Play(0);
     }
 
     private void stayStillEvent(){
