@@ -21,6 +21,8 @@ public class Navigator : MonoBehaviour
     private AudioSource BenignGoingDownAudio;
     private AudioSource BenignStayDownAudio;
     private AudioSource BenignStandUpAudio;
+
+    private AudioSource BadSpiritYouDead;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
@@ -63,6 +65,7 @@ public class Navigator : MonoBehaviour
         lineRenderer = GetComponent<LineRenderer>();
         Heartbeat = PlayerController.GetComponent<AudioSource>();
         // BenignStayStillAudio = BenignSpirit.GetComponents<AudioSource>()[1];
+        BadSpiritYouDead = GetComponents<AudioSource>()[5];
         BenignStandUpAudio = GetComponents<AudioSource>()[4];
         BenignStayDownAudio = GetComponents<AudioSource>()[3];
         BenignGoingDownAudio = GetComponents<AudioSource>()[2];
@@ -80,6 +83,9 @@ public class Navigator : MonoBehaviour
         random = new System.Random();
         createNextTarget(PlayerCamera.centerEyeAnchor.position);
     }
+
+
+
 
     // Update is called once per frame 
     void Update()
@@ -128,7 +134,7 @@ public class Navigator : MonoBehaviour
             var currentPosition = PlayerCamera.centerEyeAnchor.position;
             if (currentPosition.x > playerStillPosition.x + 0.5 || currentPosition.x < playerStillPosition.x - 0.5 || 
                 currentPosition.z > playerStillPosition.z + 0.5 || currentPosition.z < playerStillPosition.z - 0.5){
-                    QuestDebug.Instance.Log("You dead!");
+                    killPlayer();
                 }
         }
 
@@ -147,7 +153,7 @@ public class Navigator : MonoBehaviour
         if (isPlayerDown && BenignStayDownAudio.isPlaying) {
             var currentPosition = PlayerCamera.centerEyeAnchor.position;
             if (currentPosition.y > playerStillPosition.y - 0.5) {
-                QuestDebug.Instance.Log("You dead!");
+                killPlayer();
             }
         }
 
@@ -193,6 +199,18 @@ public class Navigator : MonoBehaviour
         lineRenderer.SetVertexCount(2);
         lineRenderer.SetPosition(0, start);
         lineRenderer.SetPosition(1, end);
+    }
+
+    private void killPlayer(){        
+        BenignStandUpAudio.Stop();
+        BenignStayDownAudio.Stop();
+        BenignGoingDownAudio.Stop();
+        BenignStayStillAudio.Stop();
+        SmashLightSound.Stop();  
+        Heartbeat.Stop();
+         
+        BadSpiritYouDead.Play();
+        QuestDebug.Instance.Log("You dead!");
     }
 
    	private Directions getleftOrRight(Vector3 fwd, Vector3 targetDir, Vector3 up) {
