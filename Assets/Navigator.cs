@@ -22,14 +22,21 @@ public class Navigator : MonoBehaviour
     private AudioSource BenignStayDownAudio;
     private AudioSource BenignStandUpAudio;
 
+    private AudioSource BenignSmashLight;
     private AudioSource BadSpiritYouDead;
     private LineRenderer lineRenderer;
 
     private AudioSource Heartbeat;
+    private AudioSource Breath;
+
     private float initialHeartbeatPitch;
     private float initialLightIntensity;
     private Vector3 initialPlayerPosition;
     private Vector3 initialPlayerLocalPosition;
+
+    private float TimerDeadline;
+    private float DeadlineDelta = 30;
+
     private OVRBoundary boundary;
     
     public float targetChangeThreshold = 3;
@@ -63,24 +70,31 @@ public class Navigator : MonoBehaviour
         PlayerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<OVRPlayerController>();
         RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
-        Heartbeat = PlayerController.GetComponent<AudioSource>();
-        // BenignStayStillAudio = BenignSpirit.GetComponents<AudioSource>()[1];
+        Heartbeat = PlayerController.GetComponents<AudioSource>()[0];
+        Breath = PlayerController.GetComponents<AudioSource>()[1];
+
+        // Getting audio sources 
+        BenignSmashLight = GetComponents<AudioSource>()[6];
         BadSpiritYouDead = GetComponents<AudioSource>()[5];
         BenignStandUpAudio = GetComponents<AudioSource>()[4];
         BenignStayDownAudio = GetComponents<AudioSource>()[3];
         BenignGoingDownAudio = GetComponents<AudioSource>()[2];
         BenignStayStillAudio = GetComponents<AudioSource>()[1];
         SmashLightSound = GetComponents<AudioSource>()[0];
+
+        // Set initial variables 
         initialHeartbeatPitch = Heartbeat.pitch;
         initialLightIntensity = RedLight.intensity;
         initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
         initialPlayerLocalPosition = PlayerCamera.centerEyeAnchor.localPosition;
-        QuestDebug.Instance.Log(initialPlayerPosition.ToString());
-        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + new Vector3(initialPlayerLocalPosition.x, 0, initialPlayerLocalPosition.z), transform.rotation);
-        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + , transform.rotation);
         boundary = OVRManager.boundary;
         guardianBoundariesPoint = new List<GameObject>();
         random = new System.Random();
+
+        //QuestDebug.Instance.Log(initialPlayerPosition.ToString());
+        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + new Vector3(initialPlayerLocalPosition.x, 0, initialPlayerLocalPosition.z), transform.rotation);
+        // EvilDoor = Instantiate(EvilDoor, new Vector3(0,0,0) + , transform.rotation);
+ 
         createNextTarget(PlayerCamera.centerEyeAnchor.position);
     }
 
@@ -129,8 +143,14 @@ public class Navigator : MonoBehaviour
 
         // debugDrawForward(PlayerCamera.centerEyeAnchor.position, Target.transform.position);
         stepGameTimer += Time.deltaTime;
+        TimerDeadline += Time.deltaTime;
+        
+        if(TimerDeadline > DeadlineDelta){
+            killPlayer();
+        }
 
         if (isPlayerStill && BenignStayStillAudio.isPlaying) { 
+            TimerDeadline = 0;
             var currentPosition = PlayerCamera.centerEyeAnchor.position;
             if (currentPosition.x > playerStillPosition.x + 0.5 || currentPosition.x < playerStillPosition.x - 0.5 || 
                 currentPosition.z > playerStillPosition.z + 0.5 || currentPosition.z < playerStillPosition.z - 0.5){
@@ -139,18 +159,21 @@ public class Navigator : MonoBehaviour
         }
 
         if (isPlayerStill && !BenignStayStillAudio.isPlaying) {
+            TimerDeadline = 0;
             countTargetsHit = 0;
             isPlayerStill = false;
             createNextTarget(PlayerCamera.centerEyeAnchor.position);
         }
 
         if (isPlayerGoingDown && !BenignGoingDownAudio.isPlaying) {
+            TimerDeadline = 0;
             isPlayerGoingDown = false;
             isPlayerDown = true;
             BenignStayDownAudio.Play(0);
         }
 
         if (isPlayerDown && BenignStayDownAudio.isPlaying) {
+            TimerDeadline = 0;
             var currentPosition = PlayerCamera.centerEyeAnchor.position;
             if (currentPosition.y > playerStillPosition.y - 0.5) {
                 killPlayer();
@@ -158,6 +181,7 @@ public class Navigator : MonoBehaviour
         }
 
         if (isPlayerDown && !BenignStayDownAudio.isPlaying) {
+            TimerDeadline = 0;
             BenignStandUpAudio.Play(0);
             countTargetsHit = 0;
             isPlayerDown = false;
@@ -171,6 +195,8 @@ public class Navigator : MonoBehaviour
             scaleLight(cur_distance);
         }
 
+        scaleBreath();
+      
         // log += String.Format("\n x: {0}", PlayerCamera.centerEyeAnchor.position.x);
         // log += String.Format("\n y: {0}", PlayerCamera.centerEyeAnchor.position.y);
         // log += String.Format("\n z: {0}", PlayerCamera.centerEyeAnchor.position.z);
@@ -193,6 +219,7 @@ public class Navigator : MonoBehaviour
 
     // private string chooseDirection(){
 
+
     // }
 
     private void debugDrawForward(Vector3 start, Vector3 end){
@@ -202,15 +229,18 @@ public class Navigator : MonoBehaviour
     }
 
     private void killPlayer(){        
+        
         BenignStandUpAudio.Stop();
         BenignStayDownAudio.Stop();
         BenignGoingDownAudio.Stop();
         BenignStayStillAudio.Stop();
         SmashLightSound.Stop();  
         Heartbeat.Stop();
-         
+        Breath.Stop();
         BadSpiritYouDead.Play();
+
         QuestDebug.Instance.Log("You dead!");
+        
     }
 
    	private Directions getleftOrRight(Vector3 fwd, Vector3 targetDir, Vector3 up) {
@@ -245,6 +275,22 @@ public class Navigator : MonoBehaviour
         }
     }
 
+
+    private void scaleBreath() {
+
+        float modifierPitchFactor = TimerDeadline * 0.05f;
+        
+        if(modifierPitchFactor > 1){
+            Breath.pitch = modifierPitchFactor;
+        }else{
+            Breath.pitch = 1;
+        }    
+        
+        float modifierVolumeFactor = TimerDeadline * 0.033f;
+        Breath.volume = modifierVolumeFactor;
+        //QuestDebug.Instance.Log(String.Format("{0} - {1} - {2}", TimerDeadline, Breath.pitch, Breath.volume));
+    }
+
     private void scaleLight(float distanceFromTarget) {
         float modifierFactor = distanceFromTarget - targetMinDistance;
         //I'm going away from the target
@@ -268,6 +314,7 @@ public class Navigator : MonoBehaviour
     public void stepGame(MonoBehaviour MyEvent) {
         // QuestDebug.Instance.Log(String.Format("Before {0}", MyEvent.ToString()));
         if(IsTimeToTriggerEvent()){
+            TimerDeadline = 0;
             QuestDebug.Instance.Log(String.Format("{0} - {1}", MyEvent.ToString(), stepGameTimer));
             // QuestDebug.Instance.Log(String.Format("Triggering {0}", MyEvent.ToString()));
             switch(MyEvent.ToString()){
@@ -347,6 +394,7 @@ public class Navigator : MonoBehaviour
     }
 
     private void lightEvent() {
+        BenignSmashLight.Play(0);
         Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
         var finalPosition = movePointTowardsPlayer(furthestPoint);
         finalPosition.y = PlayerCamera.centerEyeAnchor.position.y + 0.5f;
@@ -441,9 +489,10 @@ public class Navigator : MonoBehaviour
         // }
         var finalPosition = movePointTowardsPlayer(targetPosition);
         CurrentTarget = Instantiate(TargetPrefab, finalPosition, transform.rotation);
-        QuestDebug.Instance.Log("After Instantiate"); 
+        //QuestDebug.Instance.Log("After Instantiate"); 
         targetMinDistance = getDistanceFromTarget(playerPosition, CurrentTarget.transform.position);
-        QuestDebug.Instance.Log("Before return"); 
+        //QuestDebug.Instance.Log("Before return"); 
+
     }
 
     private Vector3 getFurthestPoint(Vector3 startPoint) {
