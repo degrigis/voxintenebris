@@ -12,6 +12,9 @@ TagManager:
   - Navigator
   - GameMaster
   - BenignSpirit
+  - Eye
+  - EyeLight
+  - LightUpEye
   layers:
   - Default
   - TransparentFX

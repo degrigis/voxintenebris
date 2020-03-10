@@ -28,18 +28,23 @@ public class Navigator : MonoBehaviour
     /*
     Global references to objects in the scene.
     */
-    private Light RedLight;
+    // private Light RedLight;
+    // private Light RedLight;
     public GameObject TargetPrefab;
     private GameObject CurrentTarget;
     public GameObject BoundaryPoint;
     public GameObject EvilDoor;
     public GameObject SmashLightPrefab;
     public GameObject VictoryTargetPrefab;
+    private GameObject EvilEye;
+    private Light EyeLight;
+    private Light LightUpEye;
 
     /*
     AudioSources references.
     */
     private AudioSource SmashLightSound;
+    private AudioSource BenignTutorial;
     private AudioSource BenignStayStillAudio;
     private AudioSource BenignGoingDownAudio;
     private AudioSource BenignStayDownAudio;
@@ -61,7 +66,7 @@ public class Navigator : MonoBehaviour
     heartbeat pitch and the light intensity.
     */
     private float initialHeartbeatPitch;
-    private float initialLightIntensity;
+    // private float initialLightIntensity;
 
 
     /*
@@ -133,6 +138,8 @@ public class Navigator : MonoBehaviour
     Boolean that tells us is the player is moving down.
     */
     private bool isPlayerGoingDown = false;
+
+    private bool isInsideTutorial = true;
     
     /*
     Boolean that tells us if the player is supposed to 
@@ -150,6 +157,9 @@ public class Navigator : MonoBehaviour
     Number of special events triggered so far
     */
     public int specialEventGenerated = 0;
+
+    private float eyeRotationXConstant = 0.50f;
+    private float eyeRotationYConstant = -1f;
     
     void Start()
     {
@@ -157,12 +167,16 @@ public class Navigator : MonoBehaviour
         stepGameTimer = 0f;
         PlayerCamera = GameObject.FindGameObjectWithTag("casa").GetComponent<OVRCameraRig>();
         PlayerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<OVRPlayerController>();
-        RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
+        // RedLight = GameObject.FindGameObjectWithTag("RedLight").GetComponent<Light>();
         lineRenderer = GetComponent<LineRenderer>();
         Heartbeat = PlayerController.GetComponents<AudioSource>()[0];
         Breath = PlayerController.GetComponents<AudioSource>()[1];
+        EvilEye = GameObject.FindGameObjectWithTag("Eye");
+        EyeLight = GameObject.FindGameObjectWithTag("EyeLight").GetComponent<Light>();
+        LightUpEye = GameObject.FindGameObjectWithTag("LightUpEye").GetComponent<Light>();
 
         // Getting audio sources 
+        BenignTutorial = GetComponents<AudioSource>()[9];
         BenignWakeUpVictory = GetComponents<AudioSource>()[8];
         BenignOneLastStep = GetComponents<AudioSource>()[7];
         BenignSmashLight = GetComponents<AudioSource>()[6];
@@ -175,22 +189,34 @@ public class Navigator : MonoBehaviour
 
         // Set initial variables 
         initialHeartbeatPitch = Heartbeat.pitch;
-        initialLightIntensity = RedLight.intensity;
+        // initialLightIntensity = RedLight.intensity;
         initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
         initialPlayerLocalPosition = PlayerCamera.centerEyeAnchor.localPosition;
         boundary = OVRManager.boundary;
         guardianBoundariesPoint = new List<GameObject>();
         random = new System.Random();
 
-        //Let's create the next target that the user is supposed to reach.
-        //WARNING: the red cubes are for debug only, the player is supposed to find them
-        //following the heartbeat.
-        createNextTarget(PlayerCamera.centerEyeAnchor.position);
+        BenignTutorial.Play(0);
     }
 
     // Update is called once per frame 
     void Update()
     {
+        moveEye();
+        if (isInsideTutorial && BenignTutorial.isPlaying){
+            return;
+        }
+
+
+        if (isInsideTutorial && !BenignTutorial.isPlaying){
+            isInsideTutorial = false;
+            //Let's create the next target that the user is supposed to reach.
+            //WARNING: the red cubes are for debug only, the player is supposed to find them
+            //following the heartbeat.
+            // createNextTarget(PlayerCamera.centerEyeAnchor.position);
+            stayStillEvent();
+        }
+
         // Updating our timers.
         stepGameTimer += Time.deltaTime;
         TimerDeadline += Time.deltaTime;
@@ -221,6 +247,7 @@ public class Navigator : MonoBehaviour
         the next target.
         */
         if (isPlayerStill && !BenignStayStillAudio.isPlaying) {
+            turnOffEye();
             TimerDeadline = 0;
             countTargetsHit = 0;
             isPlayerStill = false;
@@ -259,6 +286,7 @@ public class Navigator : MonoBehaviour
         */
         if (isPlayerDown && !BenignStayDownAudio.isPlaying) {
             TimerDeadline = 0;
+            turnOffEye();
             BenignStandUpAudio.Play(0);
             countTargetsHit = 0;
             isPlayerDown = false;
@@ -273,13 +301,25 @@ public class Navigator : MonoBehaviour
             Directions dir = getleftOrRight(PlayerCamera.centerEyeAnchor.forward, CurrentTarget.transform.position, PlayerCamera.centerEyeAnchor.up);
             float cur_distance = getDistanceFromTarget(PlayerCamera.centerEyeAnchor.position, CurrentTarget.transform.position);
             scaleHeartbeat(cur_distance);
-            scaleLight(cur_distance);
+            // scaleLight(cur_distance);
         }
 
         // Finally, let's scale the breath according to the time passed
         // since last time the player found a target.
         scaleBreath();
       
+    }
+
+    private void moveEye() {
+        // if (EvilEye.transform.rotation.eulerAngles.x < 310 || EvilEye.transform.eulerAngles.x > 330) {
+        //     eyeRotationXConstant = - eyeRotationXConstant;
+        // }
+        if (EvilEye.transform.rotation.y < -0.2  || EvilEye.transform.rotation.y > 0.2) {
+            eyeRotationYConstant = - eyeRotationYConstant;
+        }
+        EvilEye.transform.Rotate(Vector3.up * eyeRotationYConstant * Time.deltaTime * 20); 
+        //EvilEye.transform.Rotate(Vector3.up * 50.0f * Time.deltaTime); 
+        //EvilEye.transform.LookAt(PlayerCamera.centerEyeAnchor.position);
     }
 
     /*
@@ -295,7 +335,7 @@ public class Navigator : MonoBehaviour
     Method that kills the player
     */
     private void killPlayer(){        
-        
+        turnOffEye();
         BenignStandUpAudio.Stop();
         BenignStayDownAudio.Stop();
         BenignGoingDownAudio.Stop();
@@ -364,29 +404,36 @@ public class Navigator : MonoBehaviour
         
         if(modifierPitchFactor > 1){
             Breath.pitch = modifierPitchFactor;
-        }else{
+        } else if (modifierPitchFactor > 1.2f){
+            Breath.pitch = 1.2f;
+        }
+        else {
             Breath.pitch = 1;
         }    
         
         float modifierVolumeFactor = TimerDeadline * 0.033f;
-        Breath.volume = modifierVolumeFactor;
+        if (modifierVolumeFactor > 1) {
+            Breath.volume = 1;
+        } else {
+            Breath.volume = modifierVolumeFactor;
+        }
         //QuestDebug.Instance.Log(String.Format("{0} - {1} - {2}", TimerDeadline, Breath.pitch, Breath.volume));
     }
 
     /*
     Scaling the global light. (do we want this?)
     */
-    private void scaleLight(float distanceFromTarget) {
-        float modifierFactor = distanceFromTarget - targetMinDistance;
-        //I'm going away from the target
-        if (modifierFactor > 0) {
-            RedLight.intensity = initialLightIntensity - modifierFactor * 10;
-        } 
-        // We are going towards the target so we have to update mindistance
-        else {
-            RedLight.intensity = initialLightIntensity;
-        }
-    }
+    // private void scaleLight(float distanceFromTarget) {
+    //     float modifierFactor = distanceFromTarget - targetMinDistance;
+    //     //I'm going away from the target
+    //     if (modifierFactor > 0) {
+    //         RedLight.intensity = initialLightIntensity - modifierFactor * 20;
+    //     } 
+    //     // We are going towards the target so we have to update mindistance
+    //     else {
+    //         RedLight.intensity = initialLightIntensity;
+    //     }
+    // }
 
     /*
     Helper method that tells us if we need to trigger an answer to a collision
@@ -516,6 +563,17 @@ public class Navigator : MonoBehaviour
       
         // Benign spirit is telling the player to go down!
         BenignGoingDownAudio.Play(0);
+        turnOnEye();
+    }
+
+    private void turnOnEye(){
+        EyeLight.intensity = 30;
+        LightUpEye.intensity = 30;
+    }
+
+    private void turnOffEye(){
+        EyeLight.intensity = 0;
+        LightUpEye.intensity = 0;
     }
 
     /*
@@ -525,6 +583,7 @@ public class Navigator : MonoBehaviour
         playerStillPosition = PlayerCamera.centerEyeAnchor.position;
         isPlayerStill = true;
         BenignStayStillAudio.Play(0);
+        turnOnEye();
     }
 
     /*
