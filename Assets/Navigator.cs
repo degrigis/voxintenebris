@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Navigator : MonoBehaviour
 {
@@ -151,7 +152,7 @@ public class Navigator : MonoBehaviour
     Number of special events that the player needs to
     trigger before winning
     */
-    public int eventsBeforeVictory = 3;
+    public int eventsBeforeVictory = 5;
 
     /*
     Number of special events triggered so far
@@ -335,21 +336,9 @@ public class Navigator : MonoBehaviour
     Method that kills the player
     */
     private void killPlayer(){        
-        turnOffEye();
-        BenignStandUpAudio.Stop();
-        BenignStayDownAudio.Stop();
-        BenignGoingDownAudio.Stop();
-        BenignStayStillAudio.Stop();
-        SmashLightSound.Stop();  
-        Heartbeat.Stop();
-        Breath.Stop();
-        BadSpiritYouDead.Play();
-
-        //TODO: Create a new black scene with GAMEOVER and 
-        // maybe give possibility to restart the game.
-
-        QuestDebug.Instance.Log("You dead!");
-        
+        SceneManager.LoadScene("GameOver");
+        //BadSpiritYouDead.Play();
+        //QuestDebug.Instance.Log("You dead!");
     }
 
     /*
@@ -400,20 +389,20 @@ public class Navigator : MonoBehaviour
     */
     private void scaleBreath() {
 
-        float modifierPitchFactor = TimerDeadline * 0.05f;
+        float modifierPitchFactor = TimerDeadline * 0.03f;
         
         if(modifierPitchFactor > 1){
             Breath.pitch = modifierPitchFactor;
-        } else if (modifierPitchFactor > 1.2f){
-            Breath.pitch = 1.2f;
+        } else if (modifierPitchFactor > 1.1f){
+            Breath.pitch = 1.1f;
         }
         else {
             Breath.pitch = 1;
         }    
         
         float modifierVolumeFactor = TimerDeadline * 0.033f;
-        if (modifierVolumeFactor > 1) {
-            Breath.volume = 1;
+        if (modifierVolumeFactor > 0.5) {
+            Breath.volume = 0.5f;
         } else {
             Breath.volume = modifierVolumeFactor;
         }
@@ -474,7 +463,7 @@ public class Navigator : MonoBehaviour
 
                 case "VictoryTargetManager":
                     Destroy(CurrentTarget);
-                    BenignWakeUpVictory.Play(0);
+                    SceneManager.LoadScene("Victory");
                     break;
                 
                 default:

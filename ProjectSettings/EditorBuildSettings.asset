@@ -8,6 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/GameOver.unity
+    guid: 673ee561c4e83874796166ff165ce5c2
+  - enabled: 1
+    path: Assets/Scenes/Victory.unity
+    guid: 3eb39c27ed5e06347a1eff77359ffff2
   m_configObjects:
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: cb5280d9988f14d9eae04dade3f6c459,
       type: 2}
