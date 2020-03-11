@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -8174679358378546708}
   - component: {fileID: 1860791684838897716}
   m_Layer: 0
-  m_Name: Target
+  m_Name: GoToHellTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50,7 +50,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 505834687697958297}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e0384e6549e4e9243863c5c73470bbaa, type: 2}
+  - {fileID: 2100000, guid: 08e47174cd6bdfa448d379f039809e34, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

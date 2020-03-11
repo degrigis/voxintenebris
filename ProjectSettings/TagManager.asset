@@ -15,6 +15,7 @@ TagManager:
   - Eye
   - EyeLight
   - LightUpEye
+  - DoorLight
   layers:
   - Default
   - TransparentFX
