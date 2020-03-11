@@ -20,10 +20,8 @@
 - Game Audio :sound:
      - [ ] Understand how to do entrainment
           - [X] Heartbeat
-          - [ ] Breath 
-          - [ ] Steps
+          - [X] Breath 
      - [X] Found a good soundtrack 
-     - [ ] Other 3D Audio effects 
      - [X] Voice input system 
      
 - Game Plot :clapper:
