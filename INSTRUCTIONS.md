@@ -7,8 +7,8 @@ Authors:
 
 - Fabio Gritti
 - Sebastiano Mariani 
-- Jingxuan 
-- Yimeng 
+- Jingxuan Cao
+- Yimeng Liu
 
 
 INDICATIONS TO PLAY THE GAME 
