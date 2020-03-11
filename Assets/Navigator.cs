@@ -25,6 +25,7 @@ public class Navigator : MonoBehaviour
     */
     private Vector3 initialPlayerPosition;
     private Vector3 initialPlayerLocalPosition;
+    private Vector3 playAreaCenter;
     
     /*
     Global references to objects in the scene.
@@ -103,6 +104,7 @@ public class Navigator : MonoBehaviour
     private System.Random random;
 
     private List<GameObject> guardianBoundariesPoint;
+    private List<GameObject> playAreaBoundariesPoint;
 
     /*
     Keeps track of how many target we have reached.
@@ -152,7 +154,7 @@ public class Navigator : MonoBehaviour
     Number of special events that the player needs to
     trigger before winning
     */
-    public int eventsBeforeVictory = 5;
+    public int eventsBeforeVictory = 7;
 
     /*
     Number of special events triggered so far
@@ -191,23 +193,27 @@ public class Navigator : MonoBehaviour
         // Set initial variables 
         initialHeartbeatPitch = Heartbeat.pitch;
         // initialLightIntensity = RedLight.intensity;
-        initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        // initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        initialPlayerPosition = StaticValue.initialPlayerPosition;
         initialPlayerLocalPosition = PlayerCamera.centerEyeAnchor.localPosition;
         boundary = OVRManager.boundary;
         guardianBoundariesPoint = new List<GameObject>();
+        playAreaBoundariesPoint = new List<GameObject>();
         random = new System.Random();
 
-        BenignTutorial.Play(0);
+        // getGuardianCenter();
+
+        // BenignTutorial.Play(0);
     }
 
     // Update is called once per frame 
     void Update()
     {
         moveEye();
+
         if (isInsideTutorial && BenignTutorial.isPlaying){
             return;
         }
-
 
         if (isInsideTutorial && !BenignTutorial.isPlaying){
             isInsideTutorial = false;
@@ -472,7 +478,6 @@ public class Navigator : MonoBehaviour
             }
 
             stepGameTimer = 0;
-
             generateNextEvent(MyEvent.ToString());
        }
     }
@@ -601,46 +606,62 @@ public class Navigator : MonoBehaviour
     Trying to instantiate a fucking door rotate in the correct position, but FAILED.
     TODO: Try to make this work!
     */
-    private void doorEvent() {
-        Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
-        furthestPoint.y = 0;
-        var asd = Instantiate(BoundaryPoint, furthestPoint, transform.rotation);
-        asd.transform.position += initialPlayerPosition; 
-        asd.transform.position += new Vector3(0, 2f, 0);
-        debugDrawForward(PlayerCamera.centerEyeAnchor.position -  new Vector3(0, 2f, 0), asd.transform.position);
-        var currPlayerDirection =  PlayerCamera.centerEyeAnchor.position;
-        var currPlayerRotation =  PlayerCamera.centerEyeAnchor.rotation;
-        currPlayerDirection.y = 0;
-        // Vector3 direction = PlayerCamera.centerEyeAnchor.position - furthestPoint;
-        Vector3 direction = furthestPoint - currPlayerDirection;
-        direction.y = 0;
-        // Vector3 perpendicularVector = Vector3.Cross(direction, Vector3.up).normalized;
-        // var asd2 = Instantiate(BoundaryPoint, perpendicularVector, transform.rotation);
-        // asd2.transform.position += initialPlayerPosition; 
-        float angleValue = Vector3.Angle(transform.position, direction);
-        // Vector3 result = currPlayerDirection + direction.normalized * 1.5f;
-        float dir = Vector3.Dot(direction, Vector3.forward);
-        QuestDebug.Instance.Log(direction.normalized.ToString());
-        Vector3 result = PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward * 1.5f;
-        spawnDoor(result, angleValue);
-    }
+    // private void doorEvent() {
+    //     Vector3 furthestPoint = getFurthestPoint(PlayerCamera.centerEyeAnchor.position);
+    //     furthestPoint.y = 0;
+    //     var asd = Instantiate(BoundaryPoint, furthestPoint, transform.rotation);
+    //     asd.transform.position += initialPlayerPosition; 
+    //     asd.transform.position += new Vector3(0, 2f, 0);
+    //     debugDrawForward(PlayerCamera.centerEyeAnchor.position -  new Vector3(0, 2f, 0), asd.transform.position);
+    //     var currPlayerDirection =  PlayerCamera.centerEyeAnchor.position;
+    //     var currPlayerRotation =  PlayerCamera.centerEyeAnchor.rotation;
+    //     currPlayerDirection.y = 0;
+    //     // Vector3 direction = PlayerCamera.centerEyeAnchor.position - furthestPoint;
+    //     Vector3 direction = furthestPoint - currPlayerDirection;
+    //     direction.y = 0;
+    //     // Vector3 perpendicularVector = Vector3.Cross(direction, Vector3.up).normalized;
+    //     // var asd2 = Instantiate(BoundaryPoint, perpendicularVector, transform.rotation);
+    //     // asd2.transform.position += initialPlayerPosition; 
+    //     float angleValue = Vector3.Angle(transform.position, direction);
+    //     // Vector3 result = currPlayerDirection + direction.normalized * 1.5f;
+    //     float dir = Vector3.Dot(direction, Vector3.forward);
+    //     QuestDebug.Instance.Log(direction.normalized.ToString());
+    //     Vector3 result = PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward * 1.5f;
+    //     spawnDoor(result, angleValue);
+    // }
 
-    private void spawnDoor(Vector3 doorPosition, float rotModifier){
+    // private void spawnDoor(Vector3 doorPosition, float rotModifier){
+    private void spawnDoor(){
         
-        // Vector3 doorPosition =  PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward * 1.5f; 
-        doorPosition.y = 0;
-        // var asd = transform;
-        // asd.Rotate(new Vector3(0, rotModifier, 0));
-        // EvilDoor = Instantiate(EvilDoor, doorPosition, new Quaternion(0, PlayerCamera.centerEyeAnchor.rotation.eulerAngles.y, 0, 0));
-        // Quaternion qqq =  Quaternion.LookRotation(PlayerCamera.centerEyeAnchor.forward, Vector3.up);
-        // Quaternion qqq1 = new Quaternion(0, qqq.y, 0, 0);
-        doorPosition.x = initialPlayerPosition.x;
-        doorPosition.z = initialPlayerPosition.z;
-        EvilDoor = Instantiate(EvilDoor, initialPlayerPosition, transform.rotation);
-        var aaaa = PlayerCamera.centerEyeAnchor;
-        // aaaa.rotation = new Quaternion(0, aaaa.rotation.eulerAngles.y, 0, 0 );
-        EvilDoor.transform.LookAt(aaaa);
-        // QuestDebug.Instance.Log("Door spawned!!");
+        // // Vector3 doorPosition =  PlayerCamera.centerEyeAnchor.position - PlayerCamera.centerEyeAnchor.forward * 1.5f; 
+        // doorPosition.y = 0;
+        // // var asd = transform;
+        // // asd.Rotate(new Vector3(0, rotModifier, 0));
+        // // EvilDoor = Instantiate(EvilDoor, doorPosition, new Quaternion(0, PlayerCamera.centerEyeAnchor.rotation.eulerAngles.y, 0, 0));
+        // // Quaternion qqq =  Quaternion.LookRotation(PlayerCamera.centerEyeAnchor.forward, Vector3.up);
+        // // Quaternion qqq1 = new Quaternion(0, qqq.y, 0, 0);
+        // doorPosition.x = initialPlayerPosition.x;
+        // doorPosition.z = initialPlayerPosition.z;
+        // EvilDoor = Instantiate(EvilDoor, initialPlayerPosition, transform.rotation);
+        // var aaaa = PlayerCamera.centerEyeAnchor;
+        // // aaaa.rotation = new Quaternion(0, aaaa.rotation.eulerAngles.y, 0, 0 );
+        // EvilDoor.transform.LookAt(aaaa);
+        // // QuestDebug.Instance.Log("Door spawned!!");
+        // Vector3 playerPos = PlayerCamera.transform.position;
+        // Vector3 playerDirection = PlayerCamera.transform.forward;
+        // Quaternion playerRotation = PlayerCamera.transform.rotation;
+        // float spawnDistance = 1;
+        // Vector3 spawnPos = playerPos + playerDirection * spawnDistance;
+        // spawnPos.y = 0;
+        // var finalPosition = movePointTowardsPlayer(spawnPos, 3f);
+        GameObject closesPlayAreaPoint = getClosestPoint(PlayerCamera.centerEyeAnchor.position);
+        var asd = Instantiate(BoundaryPoint, playAreaCenter, transform.rotation);
+        asd.transform.LookAt(closesPlayAreaPoint.transform);
+        // var bbb = new Vector3(asd.transform.eulerAngles.x, asd.transform.eulerAngles.x, asd.transform.eulerAngles.z);
+        // Destroy(asd);
+        var door = Instantiate(EvilDoor, playAreaCenter, asd.transform.rotation);
+        // door.transform.LookAt(closesPlayAreaPoint.transform);
+
     }
 	
 
@@ -686,6 +707,20 @@ public class Navigator : MonoBehaviour
         }
         return furthestPosition;
     }
+    private GameObject getClosestPoint(Vector3 startPoint) {
+        float minDistance = float.MaxValue;
+        float currDistance = float.MaxValue;
+        GameObject closestPosition = null;
+        foreach (GameObject playAreaPoint in playAreaBoundariesPoint)
+        {
+            currDistance = getDistanceFromTarget(startPoint, playAreaPoint.transform.position + initialPlayerPosition + new Vector3(0, 2f, 0));
+            if (minDistance > currDistance){
+                minDistance = currDistance;
+                closestPosition = playAreaPoint;
+            }
+        }
+        return closestPosition;
+    }
     
     /*
     Helper method used to scale the position of an object toward the player
@@ -698,5 +733,33 @@ public class Navigator : MonoBehaviour
         Vector3 direction = point - currPlayerPosition;
         var finalPosition = point - direction.normalized * 0.5f;
         return finalPosition;
+    }
+    private Vector3 movePointTowardsPlayer(Vector3 point, float factor){
+        point.y = 0;
+        var currPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        currPlayerPosition.y = 0;
+        Vector3 direction = point - currPlayerPosition;
+        var finalPosition = point - direction.normalized * factor;
+        return finalPosition;
+    }
+    
+    private void getGuardianCenter(){
+        Vector3[] guardianBoundaries = boundary.GetGeometry(OVRBoundary.BoundaryType.PlayArea);
+        for (int i = 0; i < guardianBoundaries.Length; i++)
+        {
+            Vector3 point = guardianBoundaries[i];
+            var asd = Instantiate(BoundaryPoint, point, transform.rotation);
+            asd.transform.position += initialPlayerPosition; 
+            asd.transform.position += new Vector3(0, 2f, 0);
+            playAreaBoundariesPoint.Add(asd);
+        }
+        var start = guardianBoundaries[0];
+        var end = guardianBoundaries[2];
+        start.y = 0;
+        end.y = 0;
+        playAreaCenter = (((start + end + 2*initialPlayerPosition)) * 0.5f);
+        playAreaCenter.y = 0;
+        // center.y = 2;
+        // Instantiate(BoundaryPoint, center, transform.rotation);
     }
 }
