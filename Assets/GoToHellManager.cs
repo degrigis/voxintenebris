@@ -9,6 +9,7 @@ public class GoToHellManager : MonoBehaviour
     private Light doorLight;
     private float fadeFactor = 0.07f;
     private bool canFade = false;
+    private OVRCameraRig PlayerCamera;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -19,6 +20,8 @@ public class GoToHellManager : MonoBehaviour
     void Start()
     {
        doorLight = GameObject.FindGameObjectWithTag("DoorLight").GetComponent<Light>();
+       PlayerCamera = GameObject.FindGameObjectWithTag("casa").GetComponent<OVRCameraRig>();
+       StaticValue.initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
     }
 
     // Update is called once per frame

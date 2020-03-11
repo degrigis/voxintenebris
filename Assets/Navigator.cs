@@ -154,7 +154,7 @@ public class Navigator : MonoBehaviour
     Number of special events that the player needs to
     trigger before winning
     */
-    public int eventsBeforeVictory = 5;
+    public int eventsBeforeVictory = 7;
 
     /*
     Number of special events triggered so far
@@ -193,7 +193,8 @@ public class Navigator : MonoBehaviour
         // Set initial variables 
         initialHeartbeatPitch = Heartbeat.pitch;
         // initialLightIntensity = RedLight.intensity;
-        initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        // initialPlayerPosition = PlayerCamera.centerEyeAnchor.position;
+        initialPlayerPosition = StaticValue.initialPlayerPosition;
         initialPlayerLocalPosition = PlayerCamera.centerEyeAnchor.localPosition;
         boundary = OVRManager.boundary;
         guardianBoundariesPoint = new List<GameObject>();
