@@ -40,4 +40,14 @@ INDICATIONS TO PLAY THE GAME
 NOTES
 =====
 
-1- 
+1- Unfortunately, we didn't manage to fix an "orientation bug" when dynamically placing the door in the scene, and therefore, we have decided to remove that random event from the final version of the game.
+We have tried different rotations and hacks to actually make the door look at the player, but we could't fix that
+before the deadline. However, we spawn the door initially before the beginning of the game as a "welcome into the  
+nightmare". That's a small bummer, but eventually we believe this feature was not fundamental for the experience.
+
+2- We have decided to render the targets you are supposed to find to make the game a bit easier. 
+Our concern was that since we are not there presenting the game, if you don't find them it can be frustrating and can give a bad impression. We want you to reach the end :-)
+You can see them by yelling (and therefore lighting up the room) and their position is disclosed by following the sound      of the heartbeat.
+
+3- Overall, we had fun playing with Unity and definitely learning how to code a game using this engine was an interesting and possibly useful experience for the future, thanks for the opportunity!
+
